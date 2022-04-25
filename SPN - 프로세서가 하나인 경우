@@ -1,0 +1,74 @@
+# Shortest Process Next
+import heapq
+
+arrive_queue, ready_queue = [], []
+
+res = {}
+n = int(input("# of processes: "))
+# 도착 정보와 실행 시간 정보 리스트에 저장.
+arrive_time = list(map(int, input("Arrive time: ").split()))
+burst_time = list(map(int, input("Burst time: ").split()))
+
+for i in range(n):
+    # 도착 큐에 도착시간과 실행시간, 프로세스 번호 저장
+    heapq.heappush(arrive_queue, [arrive_time[i], burst_time[i], i + 1])
+    # 결과를 담을 리스트 >> 도착시간, 실행시간, 실행 종료시간 저장(나중에 실행 종료 후 저장.)
+    res[i + 1] = [arrive_time[i], burst_time[i]]
+
+# print(arrive_queue)
+# 프로세스가 도착했는지 알려주는 함수
+def arrival_check(arrive_queue, time):
+    cnt = 0
+    # 먼저 도착할 프로세스 찾기
+    for q in arrive_queue:
+        if q[0] <= time:
+            # 도착한 프로세스들이 있다면 cnt ++
+            cnt += 1
+    # 도착한 프로세스들의 갯수 리턴
+    return cnt
+
+# Non-preemptive_scheduling
+def print_output(result):
+    for i in range(1, n + 1):
+        print(f"process p{i}")
+        TT = result[i][2] - result[i][0]
+        WT = result[i][2] - result[i][0] - result[i][1]
+        print(f"WT of Process {i} : {WT}, TT of Process {i} : {TT}, NTT of Process {i} : {TT / result[i][1]:.2f}")
+
+
+
+def Shortest_Process_Next(result):
+    t = 0
+    # 레디 큐가 비고, arrive_queue도 빌 때까지 반복.
+    while ready_queue or arrive_queue:
+        # 몇개 프로세스가 도착했는지 확인 >> 도착한 프로세스 개수 만큼 arrive_queue 에서 해당 프로세스를 꺼내서 ready queue에 집어 넣기.
+        cnt = arrival_check(arrive_queue, t)
+        for _ in range(cnt):
+            tmp_process = heapq.heappop(arrive_queue)
+            tmp_process[0], tmp_process[1] = tmp_process[1], tmp_process[0]
+            heapq.heappush(ready_queue, tmp_process)
+
+        # 프로세스를 레디큐에서 꺼내기
+        # 비선점 스케줄링이므로 하나의 프로세스가 끝날때마다 ready_queue 갱신.
+
+        # 레디 큐에 프로세스가 하나라도 들어있을 경우
+        if len(ready_queue) > 0:
+            # 레디 큐에서 대기하고 있는 프로세스 하나 빼기.
+            tmp_process = heapq.heappop(ready_queue)
+
+            # 비선점 스케줄링 이므로 한번 들어가면 나올때까지 큐를 씀.
+            while tmp_process[0] > 0:
+                t += 1
+                tmp_process[0] -= 1
+            # 결과에 실행 종료 시간 저장
+            result[tmp_process[2]].append(t)
+
+        # 레디 큐에 프로세스가 없을 경우 프로세스가 들어오길 기다림 > 시간 ++
+        else:
+            t += 1
+    # print(result)
+    print_output(result)
+    # return result
+
+
+Shortest_Process_Next(res)

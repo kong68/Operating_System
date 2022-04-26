@@ -56,7 +56,7 @@ def Shortest_Process_Next(result):
             # 레디 큐에서 대기하고 있는 프로세스 하나 빼기.
             tmp_process = heapq.heappop(ready_queue)
 
-            # 비선점 스케줄링 이므로 한번 들어가면 나올때까지 큐를 씀.
+            # 비선점 스케줄링 이므로 한번 들어가면 나올때까지 프로세서를 씀.
             while tmp_process[0] > 0:
                 t += 1
                 tmp_process[0] -= 1

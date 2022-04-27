@@ -37,7 +37,7 @@ def print_output(result):
 
 
 
-def Shortest_Process_Next(result, ready_queue, arrive_queue):
+def Shortest_Remaining_Time_Next(result, ready_queue, arrive_queue):
     t = 0
     # 레디 큐가 비고, arrive_queue도 빌 때까지 반복.
     # while loop 한번 당 1초 소요
@@ -75,4 +75,4 @@ def Shortest_Process_Next(result, ready_queue, arrive_queue):
     # return result
 
 
-Shortest_Process_Next(res, ready_queue, arrive_queue)
+Shortest_Remaining_Time_Next(res, ready_queue, arrive_queue)

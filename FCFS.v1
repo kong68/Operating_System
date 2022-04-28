@@ -1,0 +1,120 @@
+class FCFS:
+    def __init__(self, N, P, Pcore, AT, BT):
+        self.N = N
+        self.P = P
+        self.Pcore = Pcore
+        self.AT = AT
+        self.BT = BT
+        self.BT_ori = BT[:]
+        self.arrive_time = []
+        self.coreinfo = []
+        self.core = [[],[],[],[]]
+        self.readyqueue = [] 
+        self.readytmp = [] 
+        self.start = [0]*N
+        self.end = [0]*N
+        self.WT = []
+        self.TT = []
+        self.power = 0
+        self.NTT = []
+        
+    def arrivetime(self):
+        count = 0
+        i = 0
+        while count < N:
+            if i == AT[count]:
+                self.arrive_time.append(count+1)
+                count+=1
+            else:
+                self.arrive_time.append(0)
+            i+=1
+            
+    #프로세서 설정
+    def processor(self):
+        count = N
+        for j in range(self.Pcore):
+            self.coreinfo.append(1)#P코어
+        for z in range(self.P-self.Pcore):#E코어              
+            self.coreinfo.append(2)
+
+    
+    def test(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readytmp.append(self.arrive_time[time])
+        
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readytmp:
+                        turn[i] = self.readytmp.pop(0)
+                        self.start[turn[i]-1] = time
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+            
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        turn[i] = 0
+                        count -= 1
+                        
+            #레디큐 상태 저장
+            self.readyqueue.append(self.readytmp[0:])
+            time+=1
+            
+        self.setWT()
+        self.setTT()
+        self.setpower()
+        self.setNTT()
+        
+    #WT계산      
+    def setWT(self):
+        for i in range(self.N):
+            self.WT.append(self.start[i]-self.AT[i])
+     
+    #TT계산
+    def setTT(self):
+        for i in range(self.N):
+            self.TT.append(self.end[i]-self.AT[i])
+    
+    #전력계산
+    def setpower(self):
+        for i in range(self.P):
+            wait = self.core[i].count(0)
+            active=len(self.core[i])-wait
+        if self.coreinfo[i]==1:
+            self.power += active*3+wait*0.1
+        elif self.coreinfo[i]==2:
+            self.power +=active+wait*0.1
+    
+    def setNTT(self):
+        for i in range(len(self.TT)):
+            self.NTT.append(self.TT[i]/self.BT_ori[i])
+    
+    
+    def getWT(self):
+        return self.WT
+    def getTT(self):
+        return self.TT
+    def getpower(self):
+        return self.power
+    def getNTT(self):
+        return self.NTT
+    def getcore(self):
+        return self.core
+    def getreadyqueue(self):
+        return self.readyqueue

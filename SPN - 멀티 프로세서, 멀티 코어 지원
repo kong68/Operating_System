@@ -95,13 +95,19 @@ def calculate_waiting_time(ready_q):
         process = i[2]
         result[process][2] += 1
 
-
+def ready_q_tracking(ready_q):
+    tmp = []
+    for i in ready_q:
+        tmp.append(i[2])
+    return tmp
 def Shortest_Process_Next(arrive_q, processors):
     time = 0
     ready_q = []
+    ready_q_track = []
 
     # 레디 큐와 도착 큐가 모두 빌 때까지 반복
     while ready_q or arrive_q or working(processors):
+
         '''프로세스가 레디 큐에 도착했는지 확인하는 과정 >> 도착시 레디 큐에 넣어줌'''
 
         cnt = check_arrive(arrive_q, time)
@@ -112,6 +118,8 @@ def Shortest_Process_Next(arrive_q, processors):
             tmp_process[0], tmp_process[1] = tmp_process[1], tmp_process[0]
             # 레디 큐에 삽입
             heapq.heappush(ready_q, tmp_process)
+        # 레디 큐 상태 정보 저장.
+        ready_q_track.append(ready_q_tracking(ready_q))
 
         # 레디 큐에 기다리는 프로세스가 있다면
         if len(ready_q):
@@ -141,6 +149,7 @@ def Shortest_Process_Next(arrive_q, processors):
 
         time += 1
     print_out_put()
+    print(f"\n<information of ready_q for each time(index == time)>\n\n{ready_q_track}")
 
 
 Shortest_Process_Next(arrive_queue, processors)

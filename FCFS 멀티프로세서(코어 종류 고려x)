@@ -1,0 +1,80 @@
+#프로세서 여러개 버전
+#코어 종류 고려 x
+
+# N = 프로세스 개수
+# P = 프로세서 개수
+# AT = 도착시간 정보 (배열로 가정)
+# BT = 실행시간 정보 (배열로 가정)
+
+def FSFC(N, P, AT, BT):
+   #도착시간 저장
+    a = []
+    count = 0
+    i = 0
+    core=[]
+    while count < N:
+        if i == AT[count]:
+            a.append(count+1)
+            count+=1
+        else:
+            a.append(0)
+        i+=1
+        
+     #프로세서 셋팅
+    core = [[],[],[],[]]
+    count = N
+    #레디큐
+    readyqueue = [] 
+    readytmp = []  
+    
+    #실행 순서 정보
+    t = [0]*P
+    
+    #프로세서 할당 정보
+    tmp = 0
+    
+    #시간
+    time = 0  
+    #시작 시간 저장
+    start = [0]*N
+    #나가는 시간 저장
+    end = [0]*N
+    
+    
+    while count>0:
+        #도착한 프로세스가 있을경우 레디큐에 저장
+        if time<len(a) and a[time] != 0:
+            readytmp.append(a[time])
+    
+        #빈프로세서 확인
+        for x in range(P):
+            if t[x] == 0:
+                if readytmp:
+                    t[x] = readytmp.pop(0)
+                    start[t[x]-1] = time
+                    
+        #프로세서 동작
+        for i in range(P):
+            core[i].append(t[i])
+        
+        #실행완료 
+        for i in range(P):
+            if t[i] != 0:
+                BT[t[i]-1]-=1
+                if BT[t[i]-1]==0:
+                    end[t[i]-1] = time
+                    t[i] = 0
+                    count -= 1
+                    
+        #레디큐 상태 저장
+        readyqueue.append(readytmp[0:])
+        time+=1    
+    
+    WT = []
+    TT = []
+    print(start, end)
+    for j in range(N):
+        WT.append(start[j]-AT[j])
+        TT.append(end[j]-AT[j])
+    print(WT, TT)
+    return core, readyqueue         

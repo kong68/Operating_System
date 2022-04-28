@@ -1,5 +1,6 @@
 # Shortest_Process_Next
 import heapq
+
 # 입력
 process_num = int(input("# of Processes: "))
 processor_num = int(input("# of Processors: "))
@@ -14,7 +15,6 @@ result = {}
 processors = {}
 
 for i in range(process_num):
-
     heapq.heappush(arrive_queue, [arrive_time[i], burst_time[i], i + 1])
     # 각 프로세스의 도착시간, 실행시간, 대기시간 저장. >> 추후에 실행 종료 시간 까지 저장.
     result[i + 1] = [arrive_time[i], burst_time[i], 0]
@@ -30,16 +30,19 @@ for i in range(processor_num):
     else:
         processors[i + 1] = [[], "e"]
 
-
 # print(arrive_queue)
 
 '''도착 큐의 모든 프로세스들을 검사하며 현재 시간 보다 도착시간이 작거나 같은 프로세스의 갯수를 리턴한다.'''
+
+
 def check_arrive(arrive_q, t):
     cnt = 0
     for i in arrive_q:
         if i[0] <= t:
             cnt += 1
     return cnt
+
+
 # 모든 프로세서들이 하나라도 일을 하고 있다면 True를 리턴함. >> 즉, 스케줄링을 계속 진행해야하는 상태
 def working(processors):
     for i in range(1, processor_num + 1):
@@ -47,6 +50,7 @@ def working(processors):
             return True
 
     return False
+
 
 # 현재 시점에 일을 할 수 있는 프로세서를 찾는 함수.
 def find_empty_processor(processors):
@@ -56,10 +60,10 @@ def find_empty_processor(processors):
 
     return False
 
-# 프로세서가 일을 하는 함수 
+
+# 프로세서가 일을 하는 함수
 #  해당 프로세서의 프로세스의 정보, 프로세서의 코어를 받음
 def running(process, core, t):
-
     if core == "p":
         process[0] -= 2
         result['power'] += 3
@@ -75,14 +79,15 @@ def running(process, core, t):
 
     return process
 
+
 def print_out_put():
     for i in range(1, process_num + 1):
         print(f"Process {i}")
         BT = result[i][1]
         TT = result[i][3] - result[i][0]
         WT = result[i][2]
-        print(f"WT of Process{i}: {WT}, TT of Process{i}: {TT}, NTT of Process{i}: {TT/BT:.2f}")
-
+        print(f"WT of Process{i}: {WT}, TT of Process{i}: {TT}, NTT of Process{i}: {TT / BT:.2f}")
+    print(f"Power Consumption: {result['power']:.1f}W")
 
 def calculate_waiting_time(ready_q):
     for i in ready_q:
@@ -116,7 +121,7 @@ def Shortest_Process_Next(arrive_q, processors):
             if empty_p:
                 # 레디큐에서 꺼내서 비어 있는 프로세서에게 넣어줌
                 processors[empty_p][0] = heapq.heappop(ready_q)
-            
+
             # 레디큐에 남은 프로세스들의 대기시간 계산해주어 result에 값 추가
             calculate_waiting_time(ready_q)
 
@@ -137,6 +142,6 @@ def Shortest_Process_Next(arrive_q, processors):
     print_out_put()
 
 
-
 Shortest_Process_Next(arrive_queue, processors)
+
 # print(result)

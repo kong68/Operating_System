@@ -1,0 +1,62 @@
+# N = 프로세스 개수
+# P = 프로세서 개수
+# AT = 도착시간 정보 (배열로 가정)
+# BT = 실행시간 정보 (배열로 가정)
+def FSFC(N, P, AT, BT):
+   #도착시간 저장
+    a = []
+    count = 0
+    i = 0
+    core=[]
+    while count < N:
+        if i == AT[count]:
+            a.append(count+1)
+            count+=1
+        else:
+            a.append(0)
+        i+=1
+        
+     #프로세서 셋팅
+    core = []
+    count = N
+    #레디큐
+    readyqueue = [] 
+    readytmp = []  
+    
+    #실행 순서 정보
+    t = 0
+    
+    #프로세서 할당 정보
+    tmp = 0
+    
+    #시간
+    i = 0  
+    #시작 시간 저장
+    start = []
+    #나가는 시간 저장
+    end = []
+    while count>0:
+        #도착한 프로세스가 있을경우 레디큐에 저장
+        if i<len(a) and a[i] != 0:
+            readytmp.append(a[i])
+            
+        if t==0:
+            if readytmp:
+                t = readytmp.pop(0)
+                start.append(i)
+        core.append(t)
+        if t!=0:
+            BT[t-1]-=1
+            if BT[t-1]==0:
+                end.append(i+1)
+                t = 0
+                count-=1
+        readyqueue.append(readytmp[0:])
+        i+=1
+
+    WT = []
+    TT = []
+    for j in range(N):
+        WT.append(start[j]-AT[j])
+        TT.append(end[j]-AT[j])
+    return         

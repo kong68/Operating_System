@@ -81,13 +81,14 @@ def running(process, core, t):
 
 
 def print_out_put():
+    print("\n\n--------------------Process Scheduling----------------------\n")
     for i in range(1, process_num + 1):
-        print(f"Process {i}")
+        print(f"<Process {i}>")
         BT = result[i][1]
         TT = result[i][3] - result[i][0]
         WT = result[i][2]
         print(f"WT of Process{i}: {WT}, TT of Process{i}: {TT}, NTT of Process{i}: {TT / BT:.2f}")
-    print(f"Power Consumption: {result['power']:.1f}W")
+    print(f"\nPower Consumption: {result['power']:.1f}W")
 
 def calculate_waiting_time(ready_q):
     for i in ready_q:

@@ -1,9 +1,5 @@
 import heapq
 
-
-# 고려 할점: 동시에 여러개의 프로세스가 레디큐에 도착한 경우나, 여러개의 프로세서들이 작업이 끝나서 여러개의 프로세서에 동시에 자리가 났을 경우
-# 내 알고리즘은 1초에 1개의 프로세스를 1개의 프로세서를 선택해 뿌려주는 알고리즘임.
-
 class Process:
     def __init__(self, number, arrive_time, burst_time):
         self._number = number

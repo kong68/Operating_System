@@ -80,7 +80,7 @@ class Scheduling:
 
     ## 다른 알고리즘 >> 이 함수를 수정하면 될듯?
     # 프로세스가 일하는 함수
-    def process_running(self):
+    def _process_running(self):
         # 프로세서를 하나씩 살핌
         for i in range(1, self.processor_num + 1):
             tmp_process = self.processors[i].work[:]
@@ -132,7 +132,7 @@ class Scheduling:
 
 
             '''프로세서가 일하는 과정.'''
-            self.process_running()
+            self._process_running()
             self.time += 1
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''

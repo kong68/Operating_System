@@ -1,0 +1,142 @@
+import heapq
+
+class Process:
+    def __init__(self, number, arrive_time, burst_time):
+        self._number = number
+        self.arrive_time = arrive_time
+        self.burst_time = burst_time
+        self.waiting_time = 0
+        self.terminate_time = -1
+
+    def __str__(self):
+        TT = self.terminate_time - self.arrive_time
+        return f"<process{self._number}>\nWT: {self.waiting_time}, TT: {TT}, NTT: {TT/self.burst_time:.1f}"
+
+
+class Processor:
+    def __init__(self, core="e"):
+        self._core = core
+        self.work = []
+        self.power = 0
+
+
+# 각각 알고리즘 마다 처리해야하므로 각 알고리즘 클래스에 변수를 저장해야함
+class Scheduling:
+    def __init__(self, process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum = None):
+        self.process_num = process_num
+        self.processor_num = processor_num
+        self.processors = {}
+        self.processes = {}
+        self.ready_q = []
+        self.time = 0
+        self.time_quantum = time_quantum
+        # 프로세서 객체 생성.
+
+        for i in range(1, processor_num + 1):
+            if p_core_num > 0:
+                self.processors[i] = Processor("p")
+                p_core_num -= 1
+
+            else:
+                self.processors[i] = Processor()
+
+        # 프로세스 객체 생성.
+        for i in range(process_num):
+            self.processes[i + 1] = Process(i + 1, arrive_time[i], burst_time[i])
+
+    # 현재 시각에 레디큐에 도착한 프로세스를 레디큐에 Push해주고, 갯수를 체크함.
+    def arrive_check(self, visited):
+        n = 0
+        for i in range(1, self.process_num + 1):
+            if not visited[i] and self.processes[i].arrive_time <= self.time:
+                heapq.heappush(self.ready_q, [self.processes[i].burst_time, self.processes[i]._number])
+                n += 1
+                visited[i] = True
+        return n
+
+    # 모든 프로세서들을 살펴보아 하나의 프로세스라도 일하고 있다면 True를 리턴
+    def working(self):
+        for i in range(1, self.processor_num + 1):
+            if self.processors[i].work != []:
+                return True
+        return False
+
+    def find_empty_processor(self):
+        for i in range(1, self.processor_num + 1):
+            if not self.processors[i].work:
+                return i
+
+        return False
+
+    def calculate_waiting_time(self):
+        for i in self.ready_q:
+            tmp = i[1]
+            self.processes[tmp].waiting_time += 1
+
+    ## 다른 알고리즘 >> 이 함수를 수정하면 될듯?
+    # 프로세스가 일하는 함수
+    def process_running(self):
+        # 프로세서를 하나씩 살핌
+        for i in range(1, self.processor_num + 1):
+            tmp_process = self.processors[i].work[:]
+            tmp_process_num = tmp_process[1]
+            # 일해야하는 프로세서 일 경우
+            if tmp_process:
+                if self.processors[i]._core == "p":
+                    tmp_process[0] -= 2
+                    self.processors[i].power += 3
+
+                else:
+                    tmp_process[0] -= 1
+                    self.processors[i].power += 1
+
+                if tmp_process[0] <= 0:
+                    self.processors[i].work = []
+                    self.processes[tmp_process_num].terminate_time = self.time + 1
+
+                else:
+                    self.processors[i].work = tmp_process
+
+            else:
+                self.processors[i].power += 0.1
+
+
+    def Shortest_Process_Next(self):
+        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+        visited = [False] * (self.process_num + 1)
+        # 주의 >> while 문에 or 연산자로 여러개 사용할 경우 첫번째 조건이 True가 되면 뒤의 조건은 살피지도 않는다 따라서 뒤의 조건 함수 실행x
+        while self.arrive_check(visited) > 0 or self.ready_q or self.working():
+            '''빈 프로세서 찾아서 빈 프로세서에 래디큐에서 기다리는 프로세스 넣는 과정'''
+            empty_processor = self.find_empty_processor()
+            
+            # 빈 프로세서가 있다면 레디큐의 프로세스를 넣어줌
+
+            if empty_processor:
+                self.processors[empty_processor].work = heapq.heappop(self.ready_q)
+
+            # 레디 큐에 있는 프로세스들의 대기시간 추가
+            self.calculate_waiting_time()
+
+
+            '''프로세서가 일하는 과정.'''
+            self.process_running()
+            self.time += 1
+
+        '''스케줄링 마친 후 총 전력 소비량 계산'''
+        power_consumption = 0
+        for i in range(1, self.processor_num + 1):
+            power_consumption += self.processors[i].power
+
+        for i in range(1, self.process_num + 1):
+            print(self.processes[i])
+        print(f"Power_Consumption: {power_consumption}")
+
+process_num = int(input("# of Processes: "))
+processor_num = int(input("# of Processors: "))
+p_core_num = int(input("# of P core: "))
+arrive_time = list(map(int, input("Arrival time: ").split()))
+burst_time = list(map(int, input("Burst time: ").split()))
+time_quantum = int(input("Time quantum for RR: "))
+
+spn = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+spn.Shortest_Process_Next()

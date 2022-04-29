@@ -54,7 +54,7 @@ class Scheduling:
                 n += 1
                 visited[i] = True
         return n
-
+    # 도착시간이 가장 늦은 시간을 찾는 작업
     def _find_max_arrive_time(self):
         max_arr = -1
         for i in range(1, process_num + 1):
@@ -67,7 +67,7 @@ class Scheduling:
             if self.processors[i].work != []:
                 return True
         return False
-
+    # 작업수행이 가능한 프로세서, 즉 비어있는 프로세서를 찾는 작업
     def _find_empty_processor(self):
         for i in range(1, self.processor_num + 1):
             if not self.processors[i].work:
@@ -217,36 +217,53 @@ class Scheduling:
     def _processor_running_for_RR(self):
         # 프로세서 하나씩 처리 >> 1초 처리하는 거임
         for i in range(1, self.processor_num + 1):
+            # i 번째 프로세서의 프로세스
             tmp_process = self.processors[i].work[:]
-
+            # i 번째 프로세서에게 할당 받은 프로세스가 있으면 작업 수행
             if tmp_process:
+                # 프로세스 번호
                 tmp_process_num = tmp_process[1]
+                # 만약 i번째 프로세서가 p코어 일 경우
                 if self.processors[i]._core == "p":
+                    # 프로세스 실행시간 2 감소
                     tmp_process[0] -= 2
+                    # i번째 프로세서의 전력 소비량 3 증가
                     self.processors[i].power += 3
-
+                # i번째 프로세스가 e 코어 일 경우
                 else:
+                    # 프로세스 실행시간 1 감소
                     tmp_process[0] -= 1
+                    # i번째 프로세서의 전력 소비량 1 증가
                     self.processors[i].power += 1
-
+                # i번째 프로세서의 time_quantum 1 감소
                 self.processors[i].time_quantum -= 1
 
                 quantum = self.processors[i].time_quantum
-
+                
+                # 프로세스가 종료되었다면
                 if tmp_process[0] <= 0:
+                    # i번째 프로세서에서 제거
                     self.processors[i].work = []
+                    # 종료된 프로세스의 종료시간 저장
                     self.processes[tmp_process_num].terminate_time = self.time + 1
-
+                # 프로세스의 실행시간이 남아있다면
                 else:
+                    # time out이라면
                     if quantum <= 0:
+                        # i번째 프로세서에서 프로세스 제거
                         self.processors[i].work = []
+                        # 프로세스가 종료된 것은 아니고 time out 이므로 다시 레디큐에 삽입
                         self.ready_q.append(tmp_process)
+                    # time_quantum이 남아 있다면
                     else:
+                        # i번째 프로세서가 해당 프로세스 계속 작업 >> 1초뒤에 다시 작업하기위해 저장.
                         self.processors[i].work = tmp_process
+            # i번째 프로세서에 할당된 프로세스가 없을 경우
             else:
+                # i번째 프로세서의 전력 소비량 증가 >> 대기전력 소비량
                 self.processors[i].power += 0.1
 
-
+    # 레디큐에 도착한 프로세서를 레디큐로 옮겨주는 작업
     def _fill_ready_q(self, visited):
         for i in range(1, self.process_num + 1):
             if not visited[i] and self.time >= self.processes[i].arrive_time:
@@ -256,21 +273,29 @@ class Scheduling:
 
     def Round_Robin(self):
         visited = [False] * (self.process_num + 1)
+        # 도착하는 프로세스 중 도착시간이 제일 긴 시간을 찾는다.
         max_arr_time = self._find_max_arrive_time()
+        # 현재시간이 최대 도착시간보다 크고, 레디큐가 비었으며, 모든 프로세스가 일을 안한다면 스케줄링 종료
         while self.time <= max_arr_time or self.ready_q or self._working():
             # 도착한 프로세스들 레디큐에 삽입
             self._fill_ready_q(visited)
 
-            # 프로세서들에게 할당
+            # 프로세서들에게 할당 >> 할당할 수 있을 만큼 레디 큐에서 모두 할당해준다. >>  프로세서가 여러개이므로 반드시 고려할 점
             while self.ready_q:
+                # 빈 프로세서를 찾는다
                 empty_processor = self._find_empty_processor()
+                # 빈 프로세스가 없다면 프로세스 할당 중지
                 if not empty_processor:
                     break
+                # 찾은 빈 프로세서에게 레디 큐에서 프로세스 할당 >> 선입 선출 구조
                 self.processors[empty_processor].work = self.ready_q.pop(0)
+                # 할당 받은 즉시 그 프로세서에게 입력으로 받은 time_quantum을 copy해준다.
                 self.processors[empty_processor].time_quantum = self.time_quantum
-
+            # 레디 큐에 기다리는 프로세스를 찾아 그 프로세스의 대기시간을 증가시킨다.
             self._calculate_waiting_time()
+            # 프로세서 작업 수행
             self._processor_running_for_RR()
+            # 현재 시간 증가
             self.time += 1
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
@@ -290,10 +315,15 @@ burst_time = list(map(int, input("Burst time: ").split()))
 time_quantum = int(input("Time quantum for RR: "))
 
 
-
+# 스케줄링 객체 생성
 spn = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+# spn 스케줄링 실행
 spn.Shortest_Process_Next()
+# 스케줄링 객체 생성
 srtn = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+# srtn 스케줄링 실행
 srtn.Shortest_Remaining_Time_Next()
+# 스케줄링 객체 생성
 RR = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum)
+# rr 스케줄링 실행.
 RR.Round_Robin()

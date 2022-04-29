@@ -79,24 +79,32 @@ class Scheduling:
         # 프로세서를 하나씩 살핌
         for i in range(1, self.processor_num + 1):
             tmp_process = self.processors[i].work[:]
-            tmp_process_num = tmp_process[1]
             # 일해야하는 프로세서 일 경우
             if tmp_process:
+                tmp_process_num = tmp_process[1]
+                # p코어라면
                 if self.processors[i]._core == "p":
+                    # 해당 프로세스의 실행시간 2개 빼줌
                     tmp_process[0] -= 2
+                    # 해당 프로세서의 전력 3 증가
                     self.processors[i].power += 3
-
+                # e코어라면
                 else:
+                    # 해당 프로세스의 실행 시간 1개 빼줌
                     tmp_process[0] -= 1
+                    # 해당 프로세서의 전력 1 증가
                     self.processors[i].power += 1
-
+                # 해당 프로세스가 모든 실행을 마쳤을 경우
                 if tmp_process[0] <= 0:
+                    # 빈 리스트를 해당 프로세서에게 저장하여 프로세스 종료를 알림.
                     self.processors[i].work = []
+                    # 실행 종료시간 기록
                     self.processes[tmp_process_num].terminate_time = self.time + 1
-
+                # 해당 프로세스의 잔여 실행시간이 있을 경우
                 else:
+                    # 다시 해당 프로세서에게 저장.
                     self.processors[i].work = tmp_process
-
+            # 일할 프로세서가 아니라면 대기 전력 추가
             else:
                 self.processors[i].power += 0.1
 
@@ -109,13 +117,13 @@ class Scheduling:
             '''빈 프로세서 찾아서 빈 프로세서에 래디큐에서 기다리는 프로세스 넣는 과정'''
             empty_processor = self.find_empty_processor()
             
+            if len(self.ready_q) > 0:
             # 빈 프로세서가 있다면 레디큐의 프로세스를 넣어줌
+                if empty_processor:
+                    self.processors[empty_processor].work = heapq.heappop(self.ready_q)
 
-            if empty_processor:
-                self.processors[empty_processor].work = heapq.heappop(self.ready_q)
-
-            # 레디 큐에 있는 프로세스들의 대기시간 추가
-            self.calculate_waiting_time()
+                # 레디 큐에 있는 프로세스들의 대기시간 추가
+                self.calculate_waiting_time()
 
 
             '''프로세서가 일하는 과정.'''
@@ -129,7 +137,7 @@ class Scheduling:
 
         for i in range(1, self.process_num + 1):
             print(self.processes[i])
-        print(f"Power_Consumption: {power_consumption}")
+        print(f"\nPower_Consumption: {power_consumption}")
 
 process_num = int(input("# of Processes: "))
 processor_num = int(input("# of Processors: "))

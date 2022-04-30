@@ -360,6 +360,9 @@ class Scheduling:
 
     def getTOTALPOWER(self):
         return sum(self.POWER)
+        
+    def getTIME(self):
+        return self.time
 
 
 

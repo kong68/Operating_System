@@ -329,7 +329,7 @@ class Scheduling:
             for i in self.ready_q:
                 tmp.append("P" + str(i[1]))
             self.readyqueue.append(tmp)
-            
+
 
     '''데이터 얻는 메서드'''
 
@@ -354,7 +354,7 @@ class Scheduling:
 
     def getNTT(self):
         for i in range(process_num):
-            self.NTT.append(self.TT[i] / self.BT[i])
+            self.NTT.append(round(self.TT[i] / self.BT[i], 2))
         return self.NTT
 
     def getPOWER(self):
@@ -377,28 +377,40 @@ burst_time = list(map(int, input("Burst time: ").split()))
 time_quantum = int(input("Time quantum for RR: "))
 
 # 스케줄링 객체 생성
-# spn = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+# SPN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
 # spn 스케줄링 실행
-# spn.Shortest_Process_Next()
+# SPN.Shortest_Process_Next()
 # 스케줄링 객체 생성
-# srtn = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+# SRTN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
 # srtn 스케줄링 실행
-# srtn.Shortest_Remaining_Time_Next()
+# SRTN.Shortest_Remaining_Time_Next()
 # 스케줄링 객체 생성
 RR = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum)
 # rr 스케줄링 실행.
 RR.Round_Robin()
-print("readyqueue")
-print(RR.getRQ())
-print("\nTT")
-print(RR.getTT())
-print("\nBT")
-print(RR.getBT())
-print("\nWT")
-print(RR.getWT())
-print("\nNTT")
-print(RR.getNTT())
-print("\nPOWER")
-print(RR.getPOWER())
-print("\nTOTALPOWER")
-print(RR.getTOTALPOWER())
+
+'''여기서부터는 데이터를 얻는 매서드 호출법 입니다. >> print문 안의 중괄호만 보시면 돼요!'''
+# 일단 모든 데이터는 리스트로 묶어놨습니다 따로 필요한 데이터 형태나 수정사항 있으면 알려주세요
+# RR은 RoundRobin을 예로 든 것입니다.
+# 먼저 레디큐 호출법
+print(f"\nReadyQueue: {RR.getRQ()}")
+# WT 호출법
+print(f"\nWT: {RR.getWT()}")
+# BT 호출법
+print(f"\nBT: {RR.getBT()}")
+# TT 호출법
+print(f"\nTT: {RR.getTT()}")
+# NTT 호출법
+print(f"\nNTT: {RR.getNTT()}")
+# 각 코어당 전력 호출법
+print(f"\nPOWER: {RR.getPOWER()}")
+# 총 전력 호출법
+print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
+# 스케줄링 종료시간 호출법
+print(f"\nTIME: {RR.getTIME()}")
+
+'''
+추가로 레디큐는 0초부터 시작이고 마지막 시간은 없어요
+만약 스케줄링 시간이 총 20 초면 0~19초까지의 레디큐 상태만 볼 수 있어요 20초는 그냥 빈 리스트라고 생각하셔도 돼요
+그리고 레디 큐의 각 시간(인덱스)는 프로세스가 레디큐에 도착하여 레디큐에 저장되고 아직 프로세서들에게 할당은 하지 않은 상태예요
+'''

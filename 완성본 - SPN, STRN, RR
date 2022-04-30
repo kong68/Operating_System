@@ -20,7 +20,7 @@ class Processor:
         self.power = 0
         self.time_quantum = None
 
-
+# 각각 알고리즘 마다 처리해야하므로 각 알고리즘 클래스에 변수를 저장해야함
 class Scheduling:
     def __init__(self, process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum=None):
         self.process_num = process_num
@@ -45,15 +45,7 @@ class Scheduling:
         for i in range(process_num):
             self.processes[i + 1] = Process(i + 1, arrive_time[i], burst_time[i])
 
-    # 현재 시각에 레디큐에 도착한 프로세스를 레디큐에 Push해주고, 갯수를 체크함.
-    def _arrive_check(self, visited):
-        n = 0
-        for i in range(1, self.process_num + 1):
-            if not visited[i] and self.processes[i].arrive_time <= self.time:
-                heapq.heappush(self.ready_q, [self.processes[i].burst_time, self.processes[i]._number])
-                n += 1
-                visited[i] = True
-        return n
+
     # 도착시간이 가장 늦은 시간을 찾는 작업
     def _find_max_arrive_time(self):
         max_arr = -1
@@ -84,8 +76,7 @@ class Scheduling:
         for i in range(1, self.processor_num + 1):
             self.power_consumption += self.processors[i].power
 
-    ## 다른 알고리즘 >> 이 함수를 수정하면 될듯?
-    # 프로세스가 일하는 함수
+    # 프로세가 일하는 함수
     def _processor_running_for_SPN(self):
         # 프로세서를 하나씩 살핌
         for i in range(1, self.processor_num + 1):
@@ -120,13 +111,12 @@ class Scheduling:
                 self.processors[i].power += 0.1
 
     def Shortest_Process_Next(self):
-        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
         visited = [False] * (self.process_num + 1)
-        # 주의 >> while 문에 or 연산자로 여러개 사용할 경우 첫번째 조건이 True가 되면 뒤의 조건은 살피지도 않는다 따라서 뒤의 조건 함수 실행x
-        while self._arrive_check(visited) > 0 or self.ready_q or self._working():
-            '''빈 프로세서 찾아서 빈 프로세서에 래디큐에서 기다리는 프로세스 넣는 과정'''
-            # 2개 이상의 프로세서가 일을 안하고 있고 2개이상의 프로세스들이 레디큐에 있다면 >> 프로세스를 하나만 뿌려주면 안됨.
-
+        max_arr_time = self._find_max_arrive_time()
+        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+        while self.time <= max_arr_time or self.ready_q or self._working():
+            # 레디큐에 도착한 프로세스 레디큐에 넣어주기
+            self._fill_ready_q(visited)
             # 레디 큐가 빌 때까지 반복 >> 프로세서들에게 프로세스를 뿌려줄 수 있는 만큼 모두 뿌려주기
             while self.ready_q:
                 # 빈 프로세스를 찾고
@@ -147,9 +137,8 @@ class Scheduling:
         self._calculate_power_consumption()
         for i in range(1, self.process_num + 1):
             print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption}")
+        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
-    # SRTN은 1초마다 레디큐를 갱신해줘야한다 >> 남은 시간을 고려한 선점 스케줄링 이므로!
     def _processor_running_for_SRTN(self):
         # 프로세서를 하나씩 살핌
         for i in range(1, self.processor_num + 1):
@@ -185,13 +174,15 @@ class Scheduling:
                 self.processors[i].power += 0.1
 
     def Shortest_Remaining_Time_Next(self):
-        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+
         visited = [False] * (self.process_num + 1)
-        # 주의 >> while 문에 or 연산자로 여러개 사용할 경우 첫번째 조건이 True가 되면 뒤의 조건은 살피지도 않는다 따라서 뒤의 조건 함수 실행x
-        while self._arrive_check(visited) > 0 or self.ready_q or self._working():
+        max_arr_time = self._find_max_arrive_time()
+        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+        while self.time <= max_arr_time or self.ready_q or self._working():
+            # 레디큐에 도착한 프로세스 레디큐에 넣어주기
+            self._fill_ready_q(visited)
             '''빈 프로세서 찾아서 빈 프로세서에 래디큐에서 기다리는 프로세스 넣는 과정'''
             # 2개 이상의 프로세서가 일을 안하고 있고 2개이상의 프로세스들이 레디큐에 있다면 >> 프로세스를 하나만 뿌려주면 안됨.
-
             # 레디 큐가 빌 때까지 반복 >> 프로세서들에게 프로세스를 뿌려줄 수 있는 만큼 모두 뿌려주기
             while self.ready_q:
                 # 빈 프로세스를 찾고
@@ -212,7 +203,7 @@ class Scheduling:
         self._calculate_power_consumption()
         for i in range(1, self.process_num + 1):
             print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption}")
+        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def _processor_running_for_RR(self):
         # 프로세서 하나씩 처리 >> 1초 처리하는 거임
@@ -239,7 +230,7 @@ class Scheduling:
                 self.processors[i].time_quantum -= 1
 
                 quantum = self.processors[i].time_quantum
-                
+
                 # 프로세스가 종료되었다면
                 if tmp_process[0] <= 0:
                     # i번째 프로세서에서 제거
@@ -264,10 +255,16 @@ class Scheduling:
                 self.processors[i].power += 0.1
 
     # 레디큐에 도착한 프로세서를 레디큐로 옮겨주는 작업
-    def _fill_ready_q(self, visited):
+    def _fill_ready_q_for_RR(self, visited):
         for i in range(1, self.process_num + 1):
             if not visited[i] and self.time >= self.processes[i].arrive_time:
                 self.ready_q.append([self.processes[i].burst_time, self.processes[i]._number])
+                visited[i] = True
+
+    def _fill_ready_q(self, visited):
+        for i in range(1, self.process_num + 1):
+            if not visited[i] and self.time >= self.processes[i].arrive_time:
+                heapq.heappush(self.ready_q, [self.processes[i].burst_time, self.processes[i]._number])
                 visited[i] = True
 
 
@@ -278,7 +275,7 @@ class Scheduling:
         # 현재시간이 최대 도착시간보다 크고, 레디큐가 비었으며, 모든 프로세스가 일을 안한다면 스케줄링 종료
         while self.time <= max_arr_time or self.ready_q or self._working():
             # 도착한 프로세스들 레디큐에 삽입
-            self._fill_ready_q(visited)
+            self._fill_ready_q_for_RR(visited)
 
             # 프로세서들에게 할당 >> 할당할 수 있을 만큼 레디 큐에서 모두 할당해준다. >>  프로세서가 여러개이므로 반드시 고려할 점
             while self.ready_q:
@@ -300,9 +297,10 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
+        print()
         for i in range(1, self.process_num + 1):
             print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption}")
+        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
 
 

@@ -418,7 +418,7 @@ class Scheduling:
                     # end_time 1씩증가
                     end_time += 1
                 # start_time값과 end_time값이 같아지고
-                
+
                 # start_time값이 0 이면 >> 프로세서 없던 것 >> start_time위치만 바꾸기
                 if core_info[start_time] == 0:
                     start_time = end_time
@@ -426,6 +426,8 @@ class Scheduling:
                 else:
                     result.append(["c" + str(i), start_time, end_time, 'p' + str(core_info[start_time])])
                     start_time = end_time
+        # 시작 시간 기준 데이터 정렬
+        result.sort(key=lambda x:x[1])
         return result
 
 

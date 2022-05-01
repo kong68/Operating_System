@@ -153,10 +153,10 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        print("\n\n----------SPN-----------")
-        for i in range(1, self.process_num + 1):
-            print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+        # print("\n\n----------SPN-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def _processor_running_for_SRTN(self):
         # 프로세서를 하나씩 살핌
@@ -234,10 +234,10 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        print("\n\n----------SRTN-----------")
-        for i in range(1, self.process_num + 1):
-            print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+        # print("\n\n----------SRTN-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def _processor_running_for_RR(self):
         # 프로세서 하나씩 처리 >> 1초 처리하는 거임
@@ -336,10 +336,10 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        print("\n\n----------RoundRobin-----------")
-        for i in range(1, self.process_num + 1):
-            print(self.processes[i])
-        print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+        # print("\n\n----------RoundRobin-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def setRQ(self):
         if len(self.ready_q) == 0:
@@ -472,5 +472,5 @@ print(f"\n<PROCESSOR INFO>\n{RR.getINFO()}")
 그리고 레디 큐의 데이터 기준, 즉 레디 큐의 각 인덱스(시간)는 각 시간마다 레디큐에 도착한 프로세스 받아주고 프로세서들에게 할당까지 한 상태예요 
 '''
 # print(RR.getINFO())
-# print(SPN.getINFO())
-# print(SRTN.getINFO())
+print(SPN.getINFO())
+print(SRTN.getINFO())

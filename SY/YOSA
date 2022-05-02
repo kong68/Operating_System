@@ -1,0 +1,85 @@
+class YOSA(FCFS):
+    #프로세서 동작
+    def runningYOSA(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        RR = [0]*self.P
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readyqueue.append(self.arrive_time[time])
+                self.readyqueuetmp.append('P'+str(self.arrive_time[time]))
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
+    
+            RR= self.setnextprocess(turn)
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readyqueue:
+                        turn[i] = self.readyqueue.pop(0)
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
+                        if self.start[turn[i]-1]==0 :
+                            self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('C'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+        
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                        
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                        turn[i] = 0
+                        count -= 1
+                    else:
+                        if time - self.corestatetmp[i][1]+1 >= RR:
+                            self.readyqueue.append(turn[i])
+                            self.readyqueuetmp.append('P'+str(turn[i]))
+                            self.corestatetmp[i].append(time+1)#종료 시간
+                            self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                            turn[i] = 0
+                            
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp)
+                    self.corestatetmp[i] = []
+                    
+            #시간증가            
+            time+=1
+        #WT, TT, 전력, NTT 계산
+        self.setTT()
+        self.setWT()
+        self.setpower()
+        self.setNTT()
+    #nextprocess
+    def setnextprocess(self, turn):
+        tmp = []
+        
+        for i in self.readyqueue:
+            if i != 0:
+                tmp.append(self.BT_ori[i-1])
+        for i in turn :
+            if i != 0:
+                tmp.append(self.BT_ori[i-1]) 
+        return min(tmp)
+    #WT계산(상속)
+    
+    def setWT(self):
+        for i in range(self.N):
+            self.WT.append(self.TT[i]-self.BT_ori[i])

@@ -263,8 +263,6 @@ class Scheduling:
                 # i번째 프로세서의 time_quantum 1 감소
                 self.processors[i].time_quantum -= 1
 
-                quantum = self.processors[i].time_quantum
-
                 # 프로세스가 종료되었다면
                 if tmp_process[0] <= 0:
                     # i번째 프로세서에서 제거
@@ -273,16 +271,7 @@ class Scheduling:
                     self.processes[tmp_process_num].terminate_time = self.time + 1
                 # 프로세스의 실행시간이 남아있다면
                 else:
-                    # time out이라면
-                    if quantum <= 0:
-                        # i번째 프로세서에서 프로세스 제거
-                        self.processors[i].work = []
-                        # 프로세스가 종료된 것은 아니고 time out 이므로 다시 레디큐에 삽입
-                        self.ready_q.append(tmp_process)
-                    # time_quantum이 남아 있다면
-                    else:
-                        # i번째 프로세서가 해당 프로세스 계속 작업 >> 1초뒤에 다시 작업하기위해 저장.
-                        self.processors[i].work = tmp_process
+                    self.processors[i].work = tmp_process
             # i번째 프로세서에 할당된 프로세스가 없을 경우
             else:
                 # i번째 프로세서의 전력 소비량 증가 >> 대기전력 소비량
@@ -300,6 +289,10 @@ class Scheduling:
             if not visited[i] and self.time >= self.processes[i].arrive_time:
                 heapq.heappush(self.ready_q, [self.processes[i].burst_time, self.processes[i]._number])
                 visited[i] = True
+    # 레디큐에 들어 온 것 받아주기
+    # 할당 해주기 >> 레디큐에서 들어온 것 먼저 처리해야함.
+    # 실행하기
+
 
     def Round_Robin(self):
         visited = [False] * (self.process_num + 1)
@@ -312,18 +305,26 @@ class Scheduling:
             self._fill_ready_q_for_RR(visited)
             self.setRQ()
 
-            # 프로세서들에게 할당 >> 할당할 수 있을 만큼 레디 큐에서 모두 할당해준다. >>  프로세서가 여러개이므로 반드시 고려할 점
-            while self.ready_q:
-                # 빈 프로세서를 찾는다
-                empty_processor = self._find_empty_processor()
-                # 빈 프로세스가 없다면 프로세스 할당 중지
-                if not empty_processor:
+            '''레디 큐에서 프로세서들에게 프로세스 할당하는 과정'''
+            # 먼저 각 프로세서를 살피며 time-out 빼서 레디큐에 넣어주기
+            for i in range(1, self.processor_num + 1):
+                # time quantum 다 되면서 burst_time이 남아 있는 프로세스를 레디큐에 넣어주기
+                if self.processors[i].time_quantum == 0 and self.processors[i].work:
+                    self.ready_q.append(self.processors[i].work)
+                    self.processors[i].work = []
+
+            # 레디 큐에서 프로세서들에게 프로세스 할당해주기.
+            for i in range(1, self.processor_num + 1):
+                # 레디 큐 비었으면 할당 종료
+                if not self.ready_q:
                     break
-                # 찾은 빈 프로세서에게 레디 큐에서 프로세스 할당 >> 선입 선출 구조
-                self.processors[empty_processor].work = self.ready_q.pop(0)
-                # 할당 받은 즉시 그 프로세서에게 입력으로 받은 time_quantum을 copy해준다.
-                self.processors[empty_processor].time_quantum = self.time_quantum
-            # 레디 큐에 기다리는 프로세스를 찾아 그 프로세스의 대기시간을 증가시킨다.
+                # 해당 프로세서가 비었다면 바로 할당하고 TIME quantum 부여
+                if self.processors[i].work == []:
+                    self.processors[i].work = self.ready_q.pop(0)
+                    self.processors[i].time_quantum = self.time_quantum
+
+
+
             self._calculate_waiting_time()
 
             self.setPROCESSOR_INFO()
@@ -453,6 +454,8 @@ RR = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time,
 # rr 스케줄링 실행.
 RR.Round_Robin()
 
+
+
 '''여기서부터는 데이터를 얻는 매서드 호출법 입니다. >> print문 안의 중괄호만 보시면 돼요!'''
 # 일단 모든 데이터는 리스트로 묶어놨습니다 따로 필요한 데이터 형태나 수정사항 있으면 알려주세요
 # RR은 RoundRobin
@@ -480,5 +483,8 @@ print(f"\n<PROCESSOR INFO>\n{RR.getINFO()}")
 그리고 레디 큐의 데이터 기준, 즉 레디 큐의 각 인덱스(시간)는 각 시간마다 레디큐에 도착한 프로세스 받아주고 프로세서들에게 할당까지 한 상태예요 
 '''
 # print(RR.getINFO())
-print(SPN.getINFO())
-print(SRTN.getINFO())
+# print(SPN.getINFO())
+# print(SRTN.getINFO())
+# print(SPN.getTIME())
+# print(SRTN.getTIME())
+# print(RR.getTIME())

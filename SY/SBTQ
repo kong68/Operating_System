@@ -1,6 +1,6 @@
-class YOSA(FCFS):
+class SBTQ(FCFS):
     #프로세서 동작
-    def runningYOSA(self):
+    def runningSBTQ(self):
         self.arrivetime()
         self.processor()
         turn = [0]*self.P
@@ -83,3 +83,4 @@ class YOSA(FCFS):
     def setWT(self):
         for i in range(self.N):
             self.WT.append(self.TT[i]-self.BT_ori[i])
+    

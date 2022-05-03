@@ -14,11 +14,12 @@ class FCFS:
         self.readyqueuetmp= []
         self.start = [0]*N #시작시간
         self.end = [0]*N #종료시간
-        self.WT = []#WT
-        self.TT = []#TT
-        self.power = []
-        self.NTT = []#NTT
-        self.corestate = []#칸트 차트 데이터
+        self.WT = [] #WT
+        self.TT = [] #TT
+        self.power = [] #전력 저장
+        self.totalpower = 0 #전체 전력
+        self.NTT = [] #NTT
+        self.corestate = [] #칸트 차트 데이터
         self.corestatetmp = [[],[],[],[]]
      
     #도착 시간 저장 
@@ -113,20 +114,24 @@ class FCFS:
     def setpower(self):
         for i in range(self.P):
             powertmp = []
+            tmp = 0
             wait = self.core[i].count(0)
             active=len(self.core[i])-wait
             if self.coreinfo[i]==1:
+                tmp = active*3+wait*0.1
                 powertmp.append("Pcore")
-                powertmp.append(active*3+wait*0.1)
+                powertmp.append(tmp)
             elif self.coreinfo[i]==2:
+                tmp = active*3+wait*0.1
                 powertmp.append("Ecore")
-                powertmp.append(active*1+wait*0.1)
+                powertmp.append(tmp)
             self.power.append(powertmp)
+            self.totalpower += tmp
         
     #NTT 계산
     def setNTT(self):
         for i in range(len(self.TT)):
-            self.NTT.append(self.TT[i]/self.BT_ori[i])
+            self.NTT.append(round(self.TT[i]/self.BT_ori[i], 2))
     
     #데이터 반환
     def getWT(self):          #WT
@@ -135,6 +140,8 @@ class FCFS:
         return self.TT
     def getpower(self):  #코어 전체 전력
         return self.power
+    def gettotalpower(self):  #코어 전체 전력
+        return self.totalpower
     def getNTT(self):        #NTT
         return self.NTT
     def getreadyqueueinfo(self):  #레디큐 

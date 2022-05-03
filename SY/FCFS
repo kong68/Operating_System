@@ -62,6 +62,7 @@ class FCFS:
                 if turn[i] == 0:
                     if self.readyqueue:
                         turn[i] = self.readyqueue.pop(0)
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
                         self.start[turn[i]-1] = time
                         self.corestatetmp[i].append('C'+str(i+1))#코어
                         self.corestatetmp[i].append(time)#시작시간
@@ -122,7 +123,7 @@ class FCFS:
                 powertmp.append("Pcore")
                 powertmp.append(tmp)
             elif self.coreinfo[i]==2:
-                tmp = active*3+wait*0.1
+                tmp = active+wait*0.1
                 powertmp.append("Ecore")
                 powertmp.append(tmp)
             self.power.append(powertmp)

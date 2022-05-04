@@ -1,0 +1,1687 @@
+import tkinter
+import tkinter.ttk
+from tkinter import *
+import heapq
+import plotly.figure_factory as ff
+
+root=tkinter.Tk()
+root.title("운영체제 프로세스 스케줄링 7조")
+root.geometry("1290x950+50+30")
+root.resizable(False, False)
+root.configure(background = "white")
+
+canvas = Canvas(root, width = 300, height =150, bg="white")  #bd = 2
+canvas.pack(fill="both",expand=True)
+
+
+############################# -이미지- #################################
+# 사진 경로 지정이 필요한 거라 직접 돌려보고 싶으시면 아래 3줄 주석 하시면 됩니다!
+
+photo=PhotoImage(file="C:/Users/user/Desktop/GUI 구현/school_logo.png") #PhotoImage를 통한 이미지 지정
+label=Label(root, image=photo,background = "white") #라벨 생성, 라벨에는 앞서 선언한 이미지가 들어감.
+label.place(x=900,y= 14)
+
+
+
+############################# -라인- #################################
+
+canvas.create_line(20, 3, 20, 917,fill="black", width = 3)
+canvas.create_line(20, 3, 1272, 3,fill="black", width = 3)
+
+canvas.create_line(22, 375, 1272, 375,fill="gray", width = 1.5)
+canvas.create_line(390, 5, 390, 375,fill="gray", width = 1.5)
+
+
+canvas.create_line(20, 917, 1272, 917,fill="black", width = 3)
+canvas.create_line(1272, 3, 1272, 917,fill="black", width = 3)
+
+canvas.create_line(22, 540, 1272, 540,fill="gray", width = 1.5)
+
+
+################################ - 레디큐 출력 - ######################################
+
+class PrintRQ:
+    def __init__(self, readyqueue):
+        self.readyqueue = readyqueue
+        self.count = 0
+        self.n = len(readyqueue)
+    def rqprint(self):
+         Ready_Queue = Label(root, text="                                                                                             ", background = "white", font = ("",30))
+         Ready_Queue.place(x=50,y=430)
+         if self.count < self.n:
+             
+             Ready_Queue = Label(root, text=self.readyqueue[self.count], background = "white", font = ("",30))
+             Ready_Queue.place(x=50,y=430)
+         
+             self.count+=1
+
+             root.after(1000,self.rqprint)
+         else: # after함수 Stop
+             pass
+
+###################################################################
+
+
+
+############################# -버튼- #################################
+
+
+scheduling_method = Label(root, text="스케줄링 기법",background = "white")
+scheduling_method.place(x=50,y=40)
+
+RR_time_quantum = Label(root, text="RR 타임퀀텀",background = "white")
+RR_time_quantum.place(x=50,y=70)
+
+process_name_print = Label(root, text="프로세스 이름",background = "white")
+process_name_print.place(x=50,y=100)
+Arrival_Time = Label(root, text="도착시간 (AT)",background = "white")
+Arrival_Time.place(x=50,y=120)
+Burst_Time = Label(root, text="실행시간 (BT)",background = "white")
+Burst_Time.place(x=50,y=140)
+
+
+processor_num_label = Label(root, text="프로세서 수",background = "white")
+processor_num_label.place(x=50,y=170)
+
+Pcore = Label(root, text="P코어 수",background = "white")
+Pcore.place(x=50,y=190)
+
+Ecore = Label(root, text="E코어 수",background = "white")
+Ecore.place(x=50,y=210)
+
+excution_speed = Label(root, text="실행 속도       1000ms",background = "white")
+excution_speed.place(x=50,y=230)
+
+Ready_Queue = Label(root, text="[ Ready Queue ]",background = "white")
+Ready_Queue.place(x=50,y=380)
+
+
+count = -1 #버튼 누를 때 마다 증가
+Time_table_list = [] #표에 들어갈 내용 튜플 형태로 저장
+Result_table_list = []
+
+
+def add_click():
+    global count
+    global Time_table_list
+    global Result_table_list
+    count += 1
+    print(count)
+
+
+    name = Entry.get(process_name_)  # 문자
+    AT = eval(Entry.get(Arrival_Time_)) # 숫자
+    BT = eval(Entry.get(Burst_Time_)) # 숫자
+    Time_table_list.append((name,AT,BT))
+    Result_table_list.append([name,AT,BT])
+
+    print(Time_table_list)
+
+    # 표에 삽입될 데이터
+    #treelist=[(name,AT, BT), ("P2","Boni", 90), ("P3","Boni", 90), ("P4","Dannel", 78), ("P5","Minho", 93)]
+
+    # 표에 데이터 삽입
+    # for i in range(len(treelist)):
+    Time_table.insert('', 'end', text="", values=Time_table_list[count], iid=count)
+    #Proces_State.insert('', 'end', text="", values=Time_table_list[count], iid=count)
+
+
+def remove():  # 맨뒤에 추가한 항목 삭제
+    global count
+    global Time_table_list
+    global Result_table_list
+    Time_table.delete(count)
+    #Proces_State.delete(count)
+    Time_table_list.pop(count)
+    Result_table_list.pop(count)
+    count = count - 1
+    
+
+
+method = ["FCFS", "RR", "SPN","SRTN", "HRRN","SBTQ"]
+scheduling_method_ = ttk.Combobox(root, height = 6, values = method)
+scheduling_method_.place(x=150,y=40)
+
+RR_time_quantum_ = Entry(root, width=20, borderwidth = 2)
+RR_time_quantum_.place(x=150,y=70)
+
+process_name_ = Entry(root, width=20, borderwidth = 2)
+process_name_.place(x=150,y=100)
+Arrival_Time_ = Entry(root, width=20, borderwidth = 2)
+Arrival_Time_.place(x=150,y=120)
+Burst_Time_ = Entry(root, width=20, borderwidth = 2)
+Burst_Time_.place(x=150,y=140)
+processor_num_ = Entry(root, width=20, borderwidth = 2)
+processor_num_.place(x=150,y=170)
+Pcore_ = Entry(root, width=20, borderwidth = 2)
+Pcore_.place(x=150,y=190)
+Ecore_ = Entry(root, width=20, borderwidth = 2)
+Ecore_.place(x=150,y=210)
+
+process_num = 0
+processor_num = 0
+p_core_num = 0
+Ecore_Num_ = 0
+time_quantum = 0
+arrive_time = []
+burst_time = []
+
+N = 0
+P = 0
+Pcore = 0
+At = []
+Bt = []
+result_GUI = []
+
+
+#rq_k = 0
+#def RQ_count(RQ_list):
+#    global rq_k
+#    rq_k +=1
+#    Ready_Queue = Label(root, text=RQ_list[rq_k], background = "white", font = ("",30))
+#    Ready_Queue.place(x=50,y=430)
+#    root.after(1000,RQ_count)
+
+def setting():
+
+    global process_num
+    global processor_num
+    global p_core_num
+    global Ecore_Num_
+    global time_quantum
+    global arrive_time
+    global burst_time
+    global rq_k
+    global Result_table_list
+    ############################
+    global N
+    global P
+    global Pcore
+    global At
+    global Bt
+
+    global result_GUI
+
+
+    process_num = len(Time_table_list)
+    processor_num = eval(Entry.get(processor_num_)) # 숫자
+    p_core_num = eval(Entry.get(Pcore_)) # 숫자
+    Ecore_Num_ = eval(Entry.get(Ecore_)) # 숫자
+    time_quantum = eval(Entry.get(RR_time_quantum_)) # 숫자
+    scheduling_method = scheduling_method_.get()
+    for i in range(len(Time_table_list)):
+        arrive_time.append(Time_table_list[i][1])
+    for j in range(len(Time_table_list)):
+        burst_time.append(Time_table_list[j][2])
+
+    N = process_num
+    P = processor_num
+    Pcore = p_core_num
+    At = arrive_time
+    Bt = burst_time
+
+
+    if scheduling_method == "RR":
+        print("RR선택")
+        # 스케줄링 객체 생성
+        RR = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum)
+        # rr 스케줄링 실행.
+        RR.Round_Robin()
+
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {RR.getRQ()}")
+        # WT 호출법
+        #print(f"\nWT: {RR.getWT()}")
+        # BT 호출법
+        print(f"\nBT: {RR.getBT()}")
+        # TT 호출법
+        #print(f"\nTT: {RR.getTT()}")
+        # NTT 호출법
+       # print(f"\nNTT: {RR.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {RR.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {RR.getTIME()}")
+
+        result_GUI = []
+        result_GUI = RR.getINFO()
+        print("  ddd " ,result_GUI)
+        idx = 0
+        while idx<len(result_GUI):
+            core = result_GUI[idx][0]
+            start_t = result_GUI[idx][1]
+            finish_t = result_GUI[idx][2]
+            process = result_GUI[idx][3]
+            idx += 1
+
+            makeList(core, start_t, finish_t, process)
+            # makeList(코어종류, 시작숫자, 끝숫자, 프로세스 종류)
+             
+        makeChart()
+
+
+        RQ_list = []
+        RQ_list = RR.getRQ()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+
+        RR_WT_list = []
+        RR_WT_list = RR.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(RR_WT_list[i])
+
+
+        RR_TT_list = []
+        RR_TT_list = RR.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(RR_TT_list[i])
+
+
+        RR_NTT_list = []
+        RR_NTT_list = RR.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(RR_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+
+        power_list = []
+        power_list = RR.getPOWER()
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+        # getTOTALPOWER()
+        t_power = Label(root, text= RR.getTOTALPOWER(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+
+        #print("dddd", RR.getTOTALPOWER())
+
+
+    if scheduling_method == "SPN":
+        print("SPN선택")
+        # 스케줄링 객체 생성
+        SPN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+        # spn 스케줄링 실행
+        SPN.Shortest_Process_Next()
+
+
+
+
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {SPN.getRQ()}")
+        # WT 호출법
+        print(f"\nWT: {SPN.getWT()}")
+        # BT 호출법
+        print(f"\nBT: {SPN.getBT()}")
+        # TT 호출법
+        print(f"\nTT: {SPN.getTT()}")
+        # NTT 호출법
+        print(f"\nNTT: {SPN.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {SPN.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {SPN.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {SPN.getTIME()}")
+
+        result_GUI = []
+        result_GUI = SPN.getINFO()
+        print("  ddd " ,result_GUI)
+        idx = 0
+        while idx<len(result_GUI):
+            core = result_GUI[idx][0]
+            start_t = result_GUI[idx][1]
+            finish_t = result_GUI[idx][2]
+            process = result_GUI[idx][3]
+            idx += 1
+
+            makeList(core, start_t, finish_t, process)
+            # makeList(코어종류, 시작숫자, 끝숫자, 프로세스 종류)
+             
+        makeChart()
+
+        
+        RQ_list = []
+        RQ_list = SPN.getRQ()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+
+        SPN_WT_list = []
+        SPN_WT_list = SPN.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SPN_WT_list[i])
+
+
+        SPN_TT_list = []
+        SPN_TT_list = SPN.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SPN_TT_list[i])
+
+
+        SPN_NTT_list = []
+        SPN_NTT_list = SPN.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SPN_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+        power_list = []
+        power_list = SPN.getPOWER()
+
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+        # getTOTALPOWER()
+        t_power = Label(root, text= SPN.getTOTALPOWER(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+
+
+
+
+    if scheduling_method == "SRTN":
+        print("SRTN선택")
+        # 스케줄링 객체 생성
+        SRTN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
+        # srtn 스케줄링 실행
+        SRTN.Shortest_Remaining_Time_Next()
+
+
+
+
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {SRTN.getRQ()}")
+        # WT 호출법
+        print(f"\nWT: {SRTN.getWT()}")
+        # BT 호출법
+        print(f"\nBT: {SRTN.getBT()}")
+        # TT 호출법
+        print(f"\nTT: {SRTN.getTT()}")
+        # NTT 호출법
+        print(f"\nNTT: {SRTN.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {SRTN.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {SRTN.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {SRTN.getTIME()}")
+
+
+        result_GUI = []
+        result_GUI = SRTN.getINFO()
+        print("  ddd " ,result_GUI)
+        idx = 0
+        while idx<len(result_GUI):
+            core = result_GUI[idx][0]
+            start_t = result_GUI[idx][1]
+            finish_t = result_GUI[idx][2]
+            process = result_GUI[idx][3]
+            idx += 1
+
+            makeList(core, start_t, finish_t, process)
+            # makeList(코어종류, 시작숫자, 끝숫자, 프로세스 종류)
+             
+        makeChart()
+
+        
+        RQ_list = []
+        RQ_list = SRTN.getRQ()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+        SRTN_WT_list = []
+        SRTN_WT_list = SRTN.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_WT_list[i])
+
+
+        SRTN_TT_list = []
+        SRTN_TT_list = SRTN.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_TT_list[i])
+
+
+        SRTN_NTT_list = []
+        SRTN_NTT_list = SRTN.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+
+        power_list = []
+        power_list = SRTN.getPOWER()
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+        # getTOTALPOWER()
+        t_power = Label(root, text= SRTN.getTOTALPOWER(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+
+        #print("dddd", RR.getTOTALPOWER())
+
+
+    if scheduling_method == "FCFS":
+        print("FCFS선택")
+        # 스케줄링 객체 생성
+        fcfs = FCFS(N, P, Pcore, At, Bt)
+        # srtn 스케줄링 실행
+        fcfs.runningFCFS()
+
+
+
+       
+
+        RQ_list = []
+        RQ_list = fcfs.getreadyqueueinfo()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+        SRTN_WT_list = []
+        SRTN_WT_list = fcfs.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_WT_list[i])
+
+
+        SRTN_TT_list = []
+        SRTN_TT_list = fcfs.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_TT_list[i])
+
+
+        SRTN_NTT_list = []
+        SRTN_NTT_list = fcfs.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+
+        power_list = []
+        power_list = fcfs.getpower()
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+
+        #getTOTALPOWER()
+        t_power = Label(root, text= fcfs.gettotalpower(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+
+
+
+    if scheduling_method == "HRRN":
+        print("HRRN선택")
+        # 스케줄링 객체 생성
+        hrrn = HRRN(N, P, Pcore, At, Bt)
+        # srtn 스케줄링 실행
+        hrrn.runningHRRN()
+
+        
+        #레디큐 츨력 부분
+
+        RQ_list = []
+        RQ_list = hrrn.getreadyqueueinfo()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+        SRTN_WT_list = []
+        SRTN_WT_list = hrrn.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_WT_list[i])
+
+
+        SRTN_TT_list = []
+        SRTN_TT_list = hrrn.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_TT_list[i])
+
+
+        SRTN_NTT_list = []
+        SRTN_NTT_list = hrrn.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+
+        power_list = []
+        power_list = hrrn.getpower()
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+
+        # getTOTALPOWER()
+        t_power = Label(root, text= hrrn.gettotalpower(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+
+        
+
+
+    if scheduling_method == "SBTQ":
+        print("SBTQ선택")
+        # 스케줄링 객체 생성
+        sbtq = SBTQ(N, P, Pcore, At, Bt)
+        # srtn 스케줄링 실행
+        sbtq.runningSBTQ()
+
+      
+
+        RQ_list = []
+        RQ_list = sbtq.getreadyqueueinfo()
+        PRQ = PrintRQ(RQ_list)
+        PRQ.rqprint()
+
+        SRTN_WT_list = []
+        SRTN_WT_list = sbtq.getWT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_WT_list[i])
+
+
+        SRTN_TT_list = []
+        SRTN_TT_list = sbtq.getTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_TT_list[i])
+
+
+        SRTN_NTT_list = []
+        SRTN_NTT_list = sbtq.getNTT()
+
+        for i in range(len(Result_table_list)):
+           Result_table_list[i].append(SRTN_NTT_list[i])
+           
+        # 결과표에 데이터 삽입
+        for i in range(len(Result_table_list)):
+            Proces_State.insert('', 'end', text="", values=Result_table_list[i], iid=i)
+
+
+
+        print(Result_table_list)
+
+
+        power_list = []
+        power_list = sbtq.getpower()
+        # 표에 데이터 삽입
+        # getPOWER()
+        for i in range(len(power_list)):
+            Power_Consumption_table.insert('', 'end', text="", values=power_list[i], iid=i)
+
+
+        # getTOTALPOWER()
+        t_power = Label(root, text= sbtq.gettotalpower(), background = "white", font = ("",17))
+        t_power.place(x=1150,y=660)
+    
+  
+
+
+Add_Button = Button(root, text="Add", command = add_click, fg ="blue")
+Add_Button.place(x=100, y=270, width=70)
+
+Add_Button = Button(root, text="Reset", command = remove, fg ="red")
+Add_Button.place(x=200, y=270, width=70)
+
+Add_Button = Button(root, text="Start", command = setting)
+Add_Button.place(x=100, y=320, width=170)
+
+############################## - 간트차트 - #########################################
+df = [] # 수정된 [코어종류, 시작시간, 끝시간, 프로세스종류] 담기
+
+def makeList(core, start_t, finish_t, process): # result 리스트 형식 바꾸기
+    if start_t < 10: # 시작 시간이 한 자리 수 일때
+        start_time = '2022-01-01 00:0' + str(start_t) # 보기 편하게 1월 1일로 지정
+        if finish_t < 10:
+            finish_time = '2022-01-01 00:0' + str(finish_t)
+        else:
+            finish_time = '2022-01-01 00:' + str(finish_t)
+    elif start_t >= 10: # 시작 시간이 두 자리 수 이상일 때
+        start_time = '2022-01-01 00:' + str(start_t)
+        finish_time = '2022-01-01 00:' + str(finish_t)
+
+    processing = dict(Task=core, Start=start_time, Finish=finish_time, Resource=process)
+    # Task는 업무 종류 (코어 종류)
+    # Start는 시작 날짜, Finish는 종료 날짜
+    # Resource는 프로세스 종류
+    df.append(processing)
+
+
+def makeChart(): # 간트 차트 만들기
+    global df
+    # 15개 프로세스에 각각 색깔 지정
+    color_table = {'p1': 'rgb(225, 128, 128)', 'p2': 'rgb(255, 0, 0)', 'p3': 'rgb(128, 64, 64)',
+              'p4': 'rgb(225, 255, 0)', 'p5': 'rgb(255, 128, 0)', 'p6': 'rgb(128, 128, 0)',
+              'p7': 'rgb(128, 255, 255)', 'p8': 'rgb(0, 0, 255)', 'p9': 'rgb(64, 128, 128)',
+              'p10': 'rgb(0, 128, 255)', 'p11': 'rgb(0, 128, 192)', 'p12': 'rgb(128, 128, 192)',
+              'p13': 'rgb(255, 128, 192)', 'p14': 'rgb(128, 0, 128)', 'p15': 'rgb(255, 128, 255)'}
+
+    fig = ff.create_gantt(df, colors=color_table, index_col='Resource', show_colorbar=True, group_tasks=True, height=500, width=1300)
+    fig.show()
+
+    
+
+
+
+"""계산으로부터 값 가져오기, 실행하기"""
+
+# 리스트의 값 하나씩 가져오기
+#idx = 0
+#while idx<len(result_GUI):
+#    core = result_GUI[idx][0]
+#    start_t = result_GUI[idx][1]
+#    finish_t = result_GUI[idx][2]
+#    process = result_GUI[idx][3]
+#    idx += 1
+
+#   makeList(core, start_t, finish_t, process)
+    # makeList(코어종류, 시작숫자, 끝숫자, 프로세스 종류)
+
+############################# -표 1- #################################
+
+lbl = tkinter.Label(root, text="[ Time table ]",background = "white")
+lbl.place(x=605,y=10)
+
+
+# 표 생성. colums 이름, displaycolum 보여지는 순서
+Time_table=tkinter.ttk.Treeview(root, columns=["Process Name", "Arrival Time","Burst Time"], displaycolumns=["Process Name", "Arrival Time","Burst Time"], height=15)
+Time_table.place(x=420,y=40)
+
+#이름, 넓이, 정렬 위치
+Time_table.column("Process Name", width=150, anchor="center")
+Time_table.heading("Process Name", text="Process Name", anchor="center")
+
+Time_table.column("Arrival Time", width=150, anchor="center")
+Time_table.heading("Arrival Time", text="Arrival Time(AT)", anchor="center")
+
+Time_table.column("Burst Time", width=150, anchor="center")
+Time_table.heading("Burst Time", text="Burst Time(BT)", anchor="center")
+
+Time_table["show"] = "headings"
+
+# 표에 삽입될 데이터
+#treelist=[("P1","Tom", 80), ("P2","Bani", 71), ("P3","Boni", 90), ("P4","Dannel", 78), ("P5","Minho", 93)]
+
+# 표에 데이터 삽입
+#for i in range(len(treelist)):
+#    treeview.insert('', 'end', text="", values=treelist[i], iid=i)
+
+
+
+############################# -표 2- #################################
+
+lbl = tkinter.Label(root, text="[ Proces State ]",background = "white")
+lbl.place(x=380,y=550)
+
+
+# 표 생성. colums 이름, displaycolum 보여지는 순서
+Proces_State=tkinter.ttk.Treeview(root, columns=["Process Name", "Arrival Time","Burst Time","Wating Time","Turnaround Time","Normalized TT"], displaycolumns=["Process Name", "Arrival Time","Burst Time","Wating Time","Turnaround Time","Normalized TT"], height=15)
+Proces_State.place(x=30,y=580)
+
+#이름, 넓이, 정렬 위치
+Proces_State.column("Process Name", width=120, anchor="center")
+Proces_State.heading("Process Name", text="Process Name", anchor="center")
+
+Proces_State.column("Arrival Time", width=120, anchor="center")
+Proces_State.heading("Arrival Time", text="Arrival Time(AT)", anchor="center")
+
+Proces_State.column("Burst Time", width=120, anchor="center")
+Proces_State.heading("Burst Time", text="Burst Time(BT)", anchor="center")
+
+Proces_State.column("Wating Time", width=120, anchor="center")
+Proces_State.heading("Wating Time", text="Wating Time(WT)", anchor="center")
+
+Proces_State.column("Turnaround Time", width=150, anchor="center")
+Proces_State.heading("Turnaround Time", text="Turnaround Time(TT)", anchor="center")
+
+Proces_State.column("Normalized TT", width=150, anchor="center")
+Proces_State.heading("Normalized TT", text="Normalized TT(NTT)", anchor="center")
+
+Proces_State["show"] = "headings"
+
+
+# WT, TT, NTT 넣기 위한 리스트
+Proces_State_list = []
+
+# 지정해서 넣기 예시
+#Proces_State.insert('', index = 0, iid = 0, text="", values = Proces_State_list[0])
+
+
+
+
+############################# -표 3- #################################
+
+lbl = tkinter.Label(root, text="[ Power Consumption ]",background = "white")
+lbl.place(x=1000,y=550)
+
+
+# 표 생성. colums 이름, displaycolum 보여지는 순서
+Power_Consumption_table=tkinter.ttk.Treeview(root, columns=["Core", "Power Consumption","Total Power Consumption"], displaycolumns=["Core", "Power Consumption","Total Power Consumption"])
+Power_Consumption_table.place(x=850,y=580)
+
+#이름, 넓이, 정렬 위치
+Power_Consumption_table.column("Core", width=80, anchor="center")
+Power_Consumption_table.heading("Core", text="Core", anchor="center")
+
+Power_Consumption_table.column("Power Consumption", width=150, anchor="center")
+Power_Consumption_table.heading("Power Consumption", text="Power Consumption", anchor="center")
+
+Power_Consumption_table.column("Total Power Consumption", width=180, anchor="center")
+Power_Consumption_table.heading("Total Power Consumption", text="Total Power Consumption", anchor="center")
+
+Power_Consumption_table["show"] = "headings"
+
+
+############################# -레디큐- #################################
+
+#ttt = [['P1','P2','P3'],["P4"],['P1','P1','P1','P1']]
+
+#for i in range(0,len(ttt)):
+#    Ready_Queue = Label(root, text=ttt[i], background = "white", font = ("",30))
+#    Ready_Queue.place(x=50,y=430)
+
+# 레디큐 출력 ex
+#Ready_Queue = Label(root, text=ttt[0], background = "white", font = ("",30))
+#Ready_Queue.place(x=50,y=430)
+#Ready_Queue.destroy()  #이전 출력 내역 삭제
+#Ready_Queue = Label(root, text=ttt[1], background = "white", font = ("",30))
+#Ready_Queue.place(x=50,y=430)
+
+
+
+    
+################################# -알고리즘- ###########################################3    
+
+class Process:
+    def __init__(self, number, arrive_time, burst_time):
+        self._number = number
+        self.arrive_time = arrive_time
+        self.burst_time = burst_time
+        self.waiting_time = 0
+        self.terminate_time = -1
+
+    def __str__(self):
+        TT = self.terminate_time - self.arrive_time
+        return f"<process{self._number}>\nWT: {self.waiting_time}, TT: {TT}, NTT: {TT / self.burst_time:.1f}"
+
+
+class Processor:
+    def __init__(self, core="e"):
+        self._core = core
+        self.work = []
+        self.power = 0
+        self.time_quantum = None
+        self.INFO = []
+
+
+# 각각 알고리즘 마다 처리해야하므로 각 알고리즘 클래스에 변수를 저장해야함
+class Scheduling:
+    def __init__(self, process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum=None):
+        self.process_num = process_num
+        self.processor_num = processor_num
+        self.processors = {}
+        self.processes = {}
+        self.ready_q = []
+        self.time = 0
+        self.time_quantum = time_quantum
+        self.power_consumption = 0
+        self.readyqueue = []
+        self.WT = []
+        self.BT = []
+        self.TT = []
+        self.NTT = []
+        self.POWER = []
+
+
+
+        # 프로세서 객체 생성.
+
+        for i in range(1, processor_num + 1):
+            if p_core_num > 0:
+                self.processors[i] = Processor("p")
+                p_core_num -= 1
+
+            else:
+                self.processors[i] = Processor()
+
+        # 프로세스 객체 생성.
+        for i in range(process_num):
+            self.processes[i + 1] = Process(i + 1, arrive_time[i], burst_time[i])
+
+    # 도착시간이 가장 늦은 시간을 찾는 작업
+    def _find_max_arrive_time(self):
+        max_arr = -1
+        for i in range(1, process_num + 1):
+            max_arr = max(max_arr, self.processes[i].arrive_time)
+        return max_arr
+
+    # 모든 프로세서들을 살펴보아 하나의 프로세스라도 일하고 있다면 True를 리턴
+    def _working(self):
+        for i in range(1, self.processor_num + 1):
+            if self.processors[i].work != []:
+                return True
+        return False
+
+    # 작업수행이 가능한 프로세서, 즉 비어있는 프로세서를 찾는 작업
+    def _find_empty_processor(self):
+        for i in range(1, self.processor_num + 1):
+            if not self.processors[i].work:
+                return i
+
+        return False
+
+    def _calculate_waiting_time(self):
+        for i in self.ready_q:
+            tmp = i[1]
+            self.processes[tmp].waiting_time += 1
+
+    def _calculate_power_consumption(self):
+        for i in range(1, self.processor_num + 1):
+            self.power_consumption += self.processors[i].power
+
+    # 프로세가 일하는 함수
+    def _processor_running_for_SPN(self):
+        # 프로세서를 하나씩 살핌
+        for i in range(1, self.processor_num + 1):
+            tmp_process = self.processors[i].work[:]
+            # 일해야하는 프로세서 일 경우
+            if tmp_process:
+                tmp_process_num = tmp_process[1]
+                # p코어라면
+                if self.processors[i]._core == "p":
+                    # 해당 프로세스의 실행시간 2개 빼줌
+                    tmp_process[0] -= 2
+                    # 해당 프로세서의 전력 3 증가
+                    self.processors[i].power += 3
+                # e코어라면
+                else:
+                    # 해당 프로세스의 실행 시간 1개 빼줌
+                    tmp_process[0] -= 1
+                    # 해당 프로세서의 전력 1 증가
+                    self.processors[i].power += 1
+                # 해당 프로세스가 모든 실행을 마쳤을 경우
+                if tmp_process[0] <= 0:
+                    # 빈 리스트를 해당 프로세서에게 저장하여 프로세스 종료를 알림.
+                    self.processors[i].work = []
+                    # 실행 종료시간 기록
+                    self.processes[tmp_process_num].terminate_time = self.time + 1
+                # 해당 프로세스의 잔여 실행시간이 있을 경우
+                else:
+                    # 다시 해당 프로세서에게 저장.
+                    self.processors[i].work = tmp_process
+            # 일할 프로세서가 아니라면 대기 전력 추가
+            else:
+                self.processors[i].power += 0.1
+
+    def Shortest_Process_Next(self):
+        visited = [False] * (self.process_num + 1)
+        max_arr_time = self._find_max_arrive_time()
+        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+        while self.time <= max_arr_time or self.ready_q or self._working():
+
+            # 레디큐에 도착한 프로세스 레디큐에 넣어주기
+            self._fill_ready_q(visited)
+
+            self.setRQ()
+            # 레디 큐가 빌 때까지 반복 >> 프로세서들에게 프로세스를 뿌려줄 수 있는 만큼 모두 뿌려주기
+            while self.ready_q:
+                # 빈 프로세서를 찾고
+                empty_processor = self._find_empty_processor()
+                # 일을 안하고 있는 프로세서가 없다면 종료
+                if not empty_processor:
+                    break
+                # 레디 큐에 있는 프로세스를 빈 프로세서에게 넣어준다.
+                self.processors[empty_processor].work = heapq.heappop(self.ready_q)
+            # 앞에서 이미 프로세서들에게 할당해줄 만큼 할당해 줬으므로 레디 큐에 남아 있는 프로세스들은 기다릴 수 밖에 없다 >> 대기시간 계산
+            self._calculate_waiting_time()
+
+            self.setPROCESSOR_INFO()
+
+            # 모두 프로세서들에게 프로세스를 배치 했으므로 프로세스 일하기
+            self._processor_running_for_SPN()
+
+            self.time += 1
+
+        '''스케줄링 마친 후 총 전력 소비량 계산'''
+        self._calculate_power_consumption()
+        # print("\n\n----------SPN-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+
+    def _processor_running_for_SRTN(self):
+        # 프로세서를 하나씩 살핌
+        for i in range(1, self.processor_num + 1):
+            tmp_process = self.processors[i].work[:]
+            # 일해야하는 프로세서 일 경우
+            if tmp_process:
+                tmp_process_num = tmp_process[1]
+                # p코어라면
+                if self.processors[i]._core == "p":
+                    # 해당 프로세스의 실행시간 2개 빼줌
+                    tmp_process[0] -= 2
+                    # 해당 프로세서의 전력 3 증가
+                    self.processors[i].power += 3
+                # e코어라면
+                else:
+                    # 해당 프로세스의 실행 시간 1개 빼줌
+                    tmp_process[0] -= 1
+                    # 해당 프로세서의 전력 1 증가
+                    self.processors[i].power += 1
+                # 해당 프로세스가 모든 실행을 마쳤을 경우
+                if tmp_process[0] <= 0:
+                    # 빈 리스트를 해당 프로세서에게 저장하여 프로세스 종료를 알림.
+                    self.processors[i].work = []
+                    # 실행 종료시간 기록
+                    self.processes[tmp_process_num].terminate_time = self.time + 1
+                else:
+                    self.processors[i].work = tmp_process
+            # 일할 프로세서가 아니라면 대기 전력 추가
+            else:
+                self.processors[i].power += 0.1
+
+    def Shortest_Remaining_Time_Next(self):
+
+        visited = [False] * (self.process_num + 1)
+        max_arr_time = self._find_max_arrive_time()
+        # 도착할 프로세스들이 없고, 레디큐에도 프로세스가 없고 일하고 있는 프로세스가 없을 경우 while loop 종료! >> 스케줄링 종료
+        while self.time <= max_arr_time or self.ready_q or self._working():
+
+            # 레디큐에 도착한 프로세스 레디큐에 넣어주기
+            self._fill_ready_q(visited)
+            self.setRQ()
+            '''남은 수행시간 기준 선점 스케줄링 임'''
+            # 프로세서들 하나씩 확인
+            for i in range(1, processor_num + 1):
+                # 레디 큐가 비었으면 할당 종료
+                if not self.ready_q:
+                    break
+                # tmp = 레디 큐 안의 최소 수행시간 프로세서
+                tmp = heapq.heappop(self.ready_q)
+                # 프로세서가 비었다면 바로 넣기
+                if self.processors[i].work == []:
+                    self.processors[i].work = tmp
+
+                else:
+                    # 레디큐에서 새로 꺼낸 프로세스가 i번째 프로세서에게 할당 된 프로세서보다 실행시간이 작을 경우 >> 선점
+                    if tmp[0] < self.processors[i].work[0]:
+                        # 둘이 위치 바꾸어주기
+                        heapq.heappush(self.ready_q, self.processors[i].work)
+                        self.processors[i].work = tmp
+                    # 반대일 경우 >> 다시 레디큐에 넣기
+                    else:
+                        heapq.heappush(self.ready_q, tmp)
+
+
+            # 앞에서 이미 프로세서들에게 할당해줄 만큼 할당해 줬으므로 레디 큐에 남아 있는 프로세스들은 기다릴 수 밖에 없다 >> 대기시간 계산
+            self._calculate_waiting_time()
+
+            self.setPROCESSOR_INFO()
+
+            # 모두 프로세서들에게 프로세스를 배치 했으므로 프로세스 일하기
+            self._processor_running_for_SRTN()
+
+            self.time += 1
+
+        '''스케줄링 마친 후 총 전력 소비량 계산'''
+        self._calculate_power_consumption()
+        # print("\n\n----------SRTN-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+
+    def _processor_running_for_RR(self):
+        # 프로세서 하나씩 처리 >> 1초 처리하는 거임
+        for i in range(1, self.processor_num + 1):
+            # i 번째 프로세서의 프로세스
+            tmp_process = self.processors[i].work[:]
+            # i 번째 프로세서에게 할당 받은 프로세스가 있으면 작업 수행
+            if tmp_process:
+                # 프로세스 번호
+                tmp_process_num = tmp_process[1]
+                # 만약 i번째 프로세서가 p코어 일 경우
+                if self.processors[i]._core == "p":
+                    # 프로세스 실행시간 2 감소
+                    tmp_process[0] -= 2
+                    # i번째 프로세서의 전력 소비량 3 증가
+                    self.processors[i].power += 3
+                # i번째 프로세스가 e 코어 일 경우
+                else:
+                    # 프로세스 실행시간 1 감소
+                    tmp_process[0] -= 1
+                    # i번째 프로세서의 전력 소비량 1 증가
+                    self.processors[i].power += 1
+                # i번째 프로세서의 time_quantum 1 감소
+                self.processors[i].time_quantum -= 1
+
+                # 프로세스가 종료되었다면
+                if tmp_process[0] <= 0:
+                    # i번째 프로세서에서 제거
+                    self.processors[i].work = []
+                    # 종료된 프로세스의 종료시간 저장
+                    self.processes[tmp_process_num].terminate_time = self.time + 1
+                # 프로세스의 실행시간이 남아있다면
+                else:
+                    self.processors[i].work = tmp_process
+            # i번째 프로세서에 할당된 프로세스가 없을 경우
+            else:
+                # i번째 프로세서의 전력 소비량 증가 >> 대기전력 소비량
+                self.processors[i].power += 0.1
+
+    # 레디큐에 도착한 프로세서를 레디큐로 옮겨주는 작업
+    def _fill_ready_q_for_RR(self, visited):
+        for i in range(1, self.process_num + 1):
+            if not visited[i] and self.time >= self.processes[i].arrive_time:
+                self.ready_q.append([self.processes[i].burst_time, self.processes[i]._number])
+                visited[i] = True
+
+    def _fill_ready_q(self, visited):
+        for i in range(1, self.process_num + 1):
+            if not visited[i] and self.time >= self.processes[i].arrive_time:
+                heapq.heappush(self.ready_q, [self.processes[i].burst_time, self.processes[i]._number])
+                visited[i] = True
+    # 레디큐에 들어 온 것 받아주기
+    # 할당 해주기 >> 레디큐에서 들어온 것 먼저 처리해야함.
+    # 실행하기
+
+
+    def Round_Robin(self):
+        visited = [False] * (self.process_num + 1)
+        # 도착하는 프로세스 중 도착시간이 제일 긴 시간을 찾는다.
+        max_arr_time = self._find_max_arrive_time()
+        # 현재시간이 최대 도착시간보다 크고, 레디큐가 비었으며, 모든 프로세스가 일을 안한다면 스케줄링 종료
+        while self.time <= max_arr_time or self.ready_q or self._working():
+
+            # 도착한 프로세스들 레디큐에 삽입
+            self._fill_ready_q_for_RR(visited)
+            self.setRQ()
+
+            '''레디 큐에서 프로세서들에게 프로세스 할당하는 과정'''
+            # 먼저 각 프로세서를 살피며 time-out 빼서 레디큐에 넣어주기
+            for i in range(1, self.processor_num + 1):
+                # time quantum 다 되면서 burst_time이 남아 있는 프로세스를 레디큐에 넣어주기
+                if self.processors[i].time_quantum == 0 and self.processors[i].work:
+                    self.ready_q.append(self.processors[i].work)
+                    self.processors[i].work = []
+
+            # 레디 큐에서 프로세서들에게 프로세스 할당해주기.
+            for i in range(1, self.processor_num + 1):
+                # 레디 큐 비었으면 할당 종료
+                if not self.ready_q:
+                    break
+                # 해당 프로세서가 비었다면 바로 할당하고 TIME quantum 부여
+                if self.processors[i].work == []:
+                    self.processors[i].work = self.ready_q.pop(0)
+                    self.processors[i].time_quantum = self.time_quantum
+
+
+
+            self._calculate_waiting_time()
+
+            self.setPROCESSOR_INFO()
+
+            # 프로세서 작업 수행
+            self._processor_running_for_RR()
+
+            # 현재 시간 증가
+            self.time += 1
+
+        '''스케줄링 마친 후 총 전력 소비량 계산'''
+        self._calculate_power_consumption()
+        # print("\n\n----------RoundRobin-----------")
+        # for i in range(1, self.process_num + 1):
+        #     print(self.processes[i])
+        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
+
+    def setRQ(self):
+        if len(self.ready_q) == 0:
+            self.readyqueue.append([])
+        else:
+            tmp = []
+            for i in self.ready_q:
+                tmp.append("P" + str(i[1]))
+            self.readyqueue.append(tmp)
+
+    def setPROCESSOR_INFO(self):
+        for i in range(1, self.processor_num + 1):
+            if self.processors[i].work == []:
+                self.processors[i].INFO.append(0)
+
+            else:
+                num = self.processors[i].work[1]
+                self.processors[i].INFO.append(num)
+    # 투 포인터로 해결해보자.
+
+
+
+
+
+    '''데이터 얻는 메서드'''
+
+    def getRQ(self):
+        # print(len(self.readyqueue))
+        return self.readyqueue
+
+    def getWT(self):
+        for i in range(1, process_num + 1):
+            self.WT.append(self.processes[i].waiting_time)
+        return self.WT
+
+    def getBT(self):
+        for i in range(1, process_num + 1):
+            self.BT.append(self.processes[i].burst_time)
+        return self.BT
+
+    def getTT(self):
+        for i in range(1, process_num + 1):
+            self.TT.append(self.processes[i].terminate_time - self.processes[i].arrive_time)
+        return self.TT
+
+    def getNTT(self):
+        for i in range(process_num):
+            self.NTT.append(round(self.TT[i] / self.BT[i], 2))
+        return self.NTT
+
+    def getPOWER(self):
+        for i in range(1, processor_num + 1):
+            self.POWER.append((self.processors[i]._core.upper() + "core", round(self.processors[i].power, 2)))
+        return self.POWER
+
+    def getTOTALPOWER(self):
+        TOTALPOWER = 0
+        for i in self.POWER:
+            TOTALPOWER += i[1]
+        return round(TOTALPOWER, 2)
+
+    def getTIME(self):
+        return self.time
+    # 투 포인터 개념 활용하여 데이터 형태 변환 [1, 2, 2, 0, 0, 3, 3, 4] >> [[c1, 0, 1, p1], [c1, 1, 3, p2], [c1, 5, 7, p3], [c1, 8, 9, p4]]
+    def getINFO(self):
+        result = []
+        # 프로세서 하나마다 살피기
+        for i in range(1, processor_num + 1):
+            core_info = self.processors[i].INFO
+            # 시작시간, 종료 시간 초기화
+            start_time, end_time = 0, 0
+            # 시작시간이 배열의 끝 + 1 까지 올때까지 반복
+            while start_time < len(core_info):
+                # start_time의 값과 end_time값이 같을 동안 반복
+                while end_time < len(core_info) and core_info[start_time] == core_info[end_time]:
+                    # end_time 1씩증가
+                    end_time += 1
+                # start_time값과 end_time값이 같아지고
+
+                # start_time값이 0 이면 >> 프로세서 없던 것 >> start_time위치만 바꾸기
+                if core_info[start_time] == 0:
+                    start_time = end_time
+                # start_time값이 0 이 아니면 >> 결과값에 저장 후 start_time위치 바꾸기
+                else:
+                    result.append(["c" + str(i), start_time, end_time, 'p' + str(core_info[start_time])])
+                    start_time = end_time
+        # 시작 시간 기준 데이터 정렬
+        result.sort(key=lambda x:x[1])
+        return result
+    
+    
+    
+
+###############################  - SY 알고리즘- ############################################
+
+class FCFS:
+    def __init__(self, N, P, Pcore, AT, BT):
+        self.N = N #프로세스 개수
+        self.P = P#프로세서 개수
+        self.Pcore = Pcore#P코어 개수
+        self.AT = AT#AT
+        self.BT = BT#BT
+        self.BT_ori = BT[:]
+        self.arrive_time = []#도착 시간
+        self.coreinfo = [] #코어 종류 저장
+        self.core = [[],[],[],[]]#코어 동작 저장
+        self.readyqueueinfo = [] #레디큐 저장
+        self.readyqueue = []  #레디큐
+        self.readyqueuetmp= []
+        self.start = [0]*N #시작시간
+        self.end = [0]*N #종료시간
+        self.WT = [] #WT
+        self.TT = [] #TT
+        self.power = [] #전력 저장
+        self.totalpower = 0 #전체 전력
+        self.NTT = [] #NTT
+        self.corestate = [] #칸트 차트 데이터
+        self.corestatetmp = [[],[],[],[]]
+     
+    #도착 시간 저장 
+    def arrivetime(self):
+        count = 0
+        i = 0
+        while count < N:
+            if i == self.AT[count]:
+                self.arrive_time.append(count+1)
+                count+=1
+            else:
+                self.arrive_time.append(0)
+            i+=1
+            
+    #프로세서 종류 설정
+    def processor(self):
+        count = N
+        for j in range(self.Pcore):
+            self.coreinfo.append(1)#P코어
+        for z in range(self.P-self.Pcore):#E코어              
+            self.coreinfo.append(2)
+
+    #프로세서 동작
+    def runningFCFS(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readyqueue.append(self.arrive_time[time])
+                self.readyqueuetmp.append('P'+str(self.arrive_time[time]))
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
+            
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readyqueue:
+                        turn[i] = self.readyqueue.pop(0)
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
+                        self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('C'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+            
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                        turn[i] = 0
+                        count -= 1
+                        
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp)
+                    self.corestatetmp[i] = []
+                    
+            #시간증가            
+            time+=1
+            
+        #WT, TT, 전력, NTT 계산
+        self.setWT()
+        self.setTT()
+        self.setpower()
+        self.setNTT()
+        
+    #WT계산      
+    def setWT(self):
+        for i in range(self.N):
+            self.WT.append(self.start[i]-self.AT[i])
+     
+    #TT계산
+    def setTT(self):
+        for i in range(self.N):
+            self.TT.append(self.end[i]-self.AT[i])
+    
+     #전력계산
+    def setpower(self):
+        for i in range(self.P):
+            powertmp = []
+            tmp = 0
+            wait = self.core[i].count(0)
+            active=len(self.core[i])-wait
+            if self.coreinfo[i]==1:
+                tmp = active*3+wait*0.1
+                powertmp.append("Pcore")
+                powertmp.append(tmp)
+            elif self.coreinfo[i]==2:
+                tmp = active+wait*0.1
+                powertmp.append("Ecore")
+                powertmp.append(tmp)
+            self.power.append(powertmp)
+            self.totalpower += tmp
+        
+    #NTT 계산
+    def setNTT(self):
+        for i in range(len(self.TT)):
+            self.NTT.append(round(self.TT[i]/self.BT_ori[i], 2))
+    
+    #데이터 반환
+    def getWT(self):          #WT
+        return self.WT
+    def getTT(self):          #TT
+        return self.TT
+    def getpower(self):  #코어 전체 전력
+        return self.power
+    def gettotalpower(self):  #코어 전체 전력
+        return self.totalpower
+    def getNTT(self):        #NTT
+        return self.NTT
+    def getreadyqueueinfo(self):  #레디큐 
+        return self.readyqueueinfo
+    def getcorestate(self):  #간트출력 데이터
+        #시작시간 기준으로 정렬하고 종료시간 기준으로 정렬
+        self.corestate.sort(key = lambda pt: (pt[1], pt[2]))
+        return self.corestate
+
+class HRRN(FCFS):
+    #프로세서 동작
+    def runningHRRN(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readyqueue.append(self.arrive_time[time])
+                self.readyqueuetmp.append('P'+str(self.arrive_time[time]))
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
+            
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readyqueue:
+                        turn[i] = self.setnextprocess(time)
+                        if turn[i] in self.readyqueue:
+                            self.readyqueue.remove(turn[i])
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
+                        self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('C'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+            
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                        turn[i] = 0
+                        count -= 1
+                        
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp)
+                    self.corestatetmp[i] = []
+                    
+            #시간증가            
+            time+=1
+            
+        #WT, TT, 전력, NTT 계산
+        self.setWT()
+        self.setTT()
+        self.setpower()
+        self.setNTT()
+    #nextprocess
+    def setnextprocess(self, time):
+        ResponseRate = []
+        for i in self.readyqueue:
+            ResponseRate.append(((self.AT[i-1]-time+self.BT[i-1])/self.BT[i-1], i))
+        return min(ResponseRate)[1]
+
+
+class SBTQ(FCFS):
+    #프로세서 동작
+    def runningSBTQ(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        RR = [0]*self.P
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readyqueue.append(self.arrive_time[time])
+                self.readyqueuetmp.append('P'+str(self.arrive_time[time]))
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
+    
+            RR= self.setnextprocess(turn)
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readyqueue:
+                        turn[i] = self.readyqueue.pop(0)
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
+                        if self.start[turn[i]-1]==0 :
+                            self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('C'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+        
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                        
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                        turn[i] = 0
+                        count -= 1
+                    else:
+                        if time - self.corestatetmp[i][1]+1 >= RR:
+                            self.readyqueue.append(turn[i])
+                            self.readyqueuetmp.append('P'+str(turn[i]))
+                            self.corestatetmp[i].append(time+1)#종료 시간
+                            self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                            turn[i] = 0
+                            
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp)
+                    self.corestatetmp[i] = []
+                    
+            #시간증가            
+            time+=1
+        #WT, TT, 전력, NTT 계산
+        self.setTT()
+        self.setWT()
+        self.setpower()
+        self.setNTT()
+    #nextprocess
+    def setnextprocess(self, turn):
+        tmp = []
+        
+        for i in self.readyqueue:
+            if i != 0:
+                tmp.append(self.BT_ori[i-1])
+        for i in turn :
+            if i != 0:
+                tmp.append(self.BT_ori[i-1]) 
+        return min(tmp)
+    #WT계산(상속)
+    
+    def setWT(self):
+        for i in range(self.N):
+            self.WT.append(self.TT[i]-self.BT_ori[i])
+
+
+
+class SBTQ(FCFS):
+    #프로세서 동작
+    def runningSBTQ(self):
+        self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        RR = [0]*self.P
+        while count>0:
+            #도착한 프로세스가 있을경우 레디큐에 저장
+            if time<len(self.arrive_time) and self.arrive_time[time] != 0:
+                self.readyqueue.append(self.arrive_time[time])
+                self.readyqueuetmp.append('P'+str(self.arrive_time[time]))
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
+    
+            RR= self.setnextprocess(turn)
+            #빈프로세서 확인
+            for i in range(self.P):
+                if turn[i] == 0:
+                    if self.readyqueue:
+                        turn[i] = self.readyqueue.pop(0)
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]
+                        if self.start[turn[i]-1]==0 :
+                            self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('C'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+                        
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+        
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어
+                        self.BT[turn[i]-1]-=1
+                        
+                    if self.BT[turn[i]-1]<=0:
+                        self.end[turn[i]-1] = time+1
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                        turn[i] = 0
+                        count -= 1
+                    else:
+                        if time - self.corestatetmp[i][1]+1 >= RR:
+                            self.readyqueue.append(turn[i])
+                            self.readyqueuetmp.append('P'+str(turn[i]))
+                            self.corestatetmp[i].append(time+1)#종료 시간
+                            self.corestatetmp[i].append('P'+str(turn[i]))#프로세스
+                            turn[i] = 0
+                            
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp)
+                    self.corestatetmp[i] = []
+                    
+            #시간증가            
+            time+=1
+        #WT, TT, 전력, NTT 계산
+        self.setTT()
+        self.setWT()
+        self.setpower()
+        self.setNTT()
+    #nextprocess
+    def setnextprocess(self, turn):
+        tmp = []
+        
+        for i in self.readyqueue:
+            if i != 0:
+                tmp.append(self.BT_ori[i-1])
+        for i in turn :
+            if i != 0:
+                tmp.append(self.BT_ori[i-1]) 
+        return min(tmp)
+    #WT계산(상속)
+    
+    def setWT(self):
+        for i in range(self.N):
+            self.WT.append(self.TT[i]-self.BT_ori[i])
+    
+# GUI 실행
+root.mainloop()

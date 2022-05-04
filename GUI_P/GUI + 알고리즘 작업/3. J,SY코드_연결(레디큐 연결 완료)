@@ -15,6 +15,7 @@ canvas.pack(fill="both",expand=True)
 
 
 ############################# -이미지- #################################
+# 사진 경로 지정이 필요한 거라 직접 돌려보고 싶으시면 아래 3줄 주석 하시면 됩니다!
 
 photo=PhotoImage(file="C:/Users/user/Desktop/GUI 구현/school_logo.png") #PhotoImage를 통한 이미지 지정
 label=Label(root, image=photo,background = "white") #라벨 생성, 라벨에는 앞서 선언한 이미지가 들어감.

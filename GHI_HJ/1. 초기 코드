@@ -12,7 +12,7 @@ win.option_add("*Font", "궁서 20")
 ent = Entry(win)  # 입력창
 ent.pack()
 
-
+ 
 
 
 

@@ -1,0 +1,106 @@
+from tkinter import *
+import plotly.figure_factory as ff # 새 창에 간티 차트 만들기
+import algorithm # 성오님 알고리즘.py
+
+
+"""창 만들어서 테스트"""
+win = Tk()
+win.geometry("500x500")
+win.title("프로젝트")
+win.option_add("*Font", "궁서 20")
+
+ent = Entry(win)  # 입력창
+ent.pack()
+
+
+
+
+
+"""프로세싱 스케줄링 방법"""
+scheduling_type = "" # 초기화
+def a():
+    if scheduling_type == "RR":
+        data = algorithm.RR # RR 부분 입력창에서 받아오기
+    elif scheduling_type == "SPN":
+        data = algorithm.SPN
+    elif scheduling_type == "SRTN":
+        data = algorithm.SRTN
+
+
+data = algorithm.SPN # 실행 확인용
+result_GUI = data.getINFO()
+
+
+
+"""확인용(삭제)"""
+# result table에 넣을 시간 값
+"""print("대기  시간:", data.WT[0])
+print("실행  시간:", data.BT[0])
+print("반환  시간:", data.TT[0])
+print("정규화시간: ", data.NTT[0])
+"""
+print("값:", result_GUI)
+
+
+
+"""함수"""
+df = [] # 수정된 [코어종류, 시작시간, 끝시간, 프로세스종류] 담기
+
+def makeList(core, start_t, finish_t, process): # result 리스트 형식 바꾸기
+    if start_t < 10: # 시작 시간이 한 자리 수 일때
+        start_time = '2022-01-01 00:0' + str(start_t) # 보기 편하게 1월 1일로 지정
+        if finish_t < 10:
+            finish_time = '2022-01-01 00:0' + str(finish_t)
+        else:
+            finish_time = '2022-01-01 00:' + str(finish_t)
+    elif start_t >= 10: # 시작 시간이 두 자리 수 이상일 때
+        start_time = '2022-01-01 00:' + str(start_t)
+        finish_time = '2022-01-01 00:' + str(finish_t)
+
+    processing = dict(Task=core, Start=start_time, Finish=finish_time, Resource=process)
+    # Task는 업무 종류 (코어 종류)
+    # Start는 시작 날짜, Finish는 종료 날짜
+    # Resource는 프로세스 종류
+    df.append(processing)
+
+
+def makeChart(): # 간트 차트 만들기
+    # 15개 프로세스에 각각 색깔 지정
+    color_table = {'p1': 'rgb(225, 128, 128)', 'p2': 'rgb(255, 255, 0)', 'p3': 'rgb(128, 64, 64)',
+              'p4': 'rgb(225, 0, 0)', 'p5': 'rgb(255, 128, 0)', 'p6': 'rgb(128, 128, 0)',
+              'p7': 'rgb(128, 255, 255)', 'p8': 'rgb(0, 0, 255)', 'p9': 'rgb(64, 128, 128)',
+              'p10': 'rgb(0, 128, 255)', 'p11': 'rgb(0, 128, 192)', 'p12': 'rgb(128, 128, 192)',
+              'p13': 'rgb(255, 128, 192)', 'p14': 'rgb(128, 0, 128)', 'p15': 'rgb(255, 128, 255)'}
+
+    fig = ff.create_gantt(df, colors=color_table, index_col='Resource', show_colorbar=True, group_tasks=True, height=500, width=1300)
+    fig.show()
+    # create_gantt: 스케줄을 나타내는 막대 차트를 생성한다. 작업의 시작 시간, 종료 시간을 수평 막대로 나타내고 코어 종류를 수직 축으로 나타낸다.
+    # df 리스트 사용
+    # index_col: Resource로 설정한 수치에 따라 열을 구성한다.
+    # colors: color_table로 설정한 수치에 따라 색상을 선택한다.
+    # show_colorbar: index_col의 값이 수치일 경우 색상바로 나타낸다.
+    # group_tasks: 프로세스 스케줄링을 같은 코어끼리 그룹화한다.
+    # height, width: 간트 차트 크기
+    
+
+
+
+"""계산으로부터 값 가져오기, 실행하기"""
+
+# 리스트의 값 하나씩 가져오기
+idx = 0
+while idx<len(result_GUI):
+    core = result_GUI[idx][0]
+    start_t = result_GUI[idx][1]
+    finish_t = result_GUI[idx][2]
+    process = result_GUI[idx][3]
+    idx += 1
+    print(core, start_t, finish_t, process)
+    makeList(core, start_t, finish_t, process)
+    # makeList(코어종류, 시작숫자, 끝숫자, 프로세스 종류)
+
+btn = Button(win)
+btn.config(text="클릭!")
+btn.config(command = makeChart) # 그래프 출력하기...
+btn.pack() # 버튼 보이기
+win.mainloop()

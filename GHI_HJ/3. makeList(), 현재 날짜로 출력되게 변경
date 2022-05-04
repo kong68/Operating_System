@@ -1,0 +1,14 @@
+from datetime import datetime # 현재 시간 가져오기
+
+def makeList(core, start_t, finish_t, process): # result 리스트 형식 바꾸기
+    date_today = datetime.now().date()
+    print(date_today)
+    if start_t < 10: # 시작 시간이 한 자리 수 일때
+        start_time = str(date_today) +' 00:0' + str(start_t) # 보기 편하게 1월 1일로 지정
+        if finish_t < 10:
+            finish_time = str(date_today) +' 00:0' + str(finish_t)
+        else:
+            finish_time = str(date_today) +' 00:' + str(finish_t)
+    elif start_t >= 10: # 시작 시간이 두 자리 수 이상일 때
+        start_time = str(date_today) +' 00:' + str(start_t)
+        finish_time = str(date_today) +' 00:' + str(finish_t)

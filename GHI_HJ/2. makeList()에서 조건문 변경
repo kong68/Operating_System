@@ -32,6 +32,7 @@ result_GUI = data.getINFO()
 
 
 
+
 """확인용(삭제)"""
 # result table에 넣을 시간 값
 """print("대기  시간:", data.WT[0])

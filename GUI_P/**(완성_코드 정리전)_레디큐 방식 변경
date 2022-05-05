@@ -229,8 +229,23 @@ def setting():
         # rr 스케줄링 실행.
         RR.Round_Robin()
 
-        #삭제시 오류 발생 함.
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {RR.getRQ()}")
+        # WT 호출법
+        #print(f"\nWT: {RR.getWT()}")
+        # BT 호출법
         print(f"\nBT: {RR.getBT()}")
+        # TT 호출법
+        #print(f"\nTT: {RR.getTT()}")
+        # NTT 호출법
+       # print(f"\nNTT: {RR.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {RR.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {RR.getTIME()}")
         
 
         result_GUI = []
@@ -307,7 +322,23 @@ def setting():
         SPN.Shortest_Process_Next()
 
 
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {SPN.getRQ()}")
+        # WT 호출법
+        #print(f"\nWT: {RR.getWT()}")
+        # BT 호출법
         print(f"\nBT: {SPN.getBT()}")
+        # TT 호출법
+        #print(f"\nTT: {RR.getTT()}")
+        # NTT 호출법
+       # print(f"\nNTT: {RR.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {RR.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {SPN.getTIME()}")
 
         result_GUI = []
         result_GUI = SPN.getINFO()
@@ -383,7 +414,23 @@ def setting():
         SRTN.Shortest_Remaining_Time_Next()
 
 
+        # RR은 RoundRobin
+        # 먼저 레디큐 호출법
+        print(f"\nReadyQueue: {SRTN.getRQ()}")
+        # WT 호출법
+        #print(f"\nWT: {RR.getWT()}")
+        # BT 호출법
         print(f"\nBT: {SRTN.getBT()}")
+        # TT 호출법
+        #print(f"\nTT: {RR.getTT()}")
+        # NTT 호출법
+       # print(f"\nNTT: {RR.getNTT()}")
+        # 각 코어당 전력 호출법
+        #print(f"\nPOWER: {RR.getPOWER()}")
+        # 총 전력 호출법
+        #print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
+        # 스케줄링 종료시간 호출법
+        print(f"\nTIME: {SRTN.getTIME()}")
 
 
 
@@ -850,7 +897,10 @@ Power_Consumption_table["show"] = "headings"
 
 
     
-################################# - SO 알고리즘- ###########################################3    
+################################# -알고리즘- ###########################################3    
+
+import heapq
+
 
 class Process:
     def __init__(self, number, arrive_time, burst_time):
@@ -1363,7 +1413,6 @@ class FCFS:
     def getcore(self):
         return self.core
 
-
 class HRRN(FCFS):
     #프로세서 동작
     def runningHRRN(self):
@@ -1460,7 +1509,8 @@ class SBTQ(FCFS):
                     self.readyqueuetmp.append('P'+str(i))
                 readytmp = []
             
-        
+            #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])        
     
             TQ= self.setnextprocess(turn)
             
@@ -1474,10 +1524,7 @@ class SBTQ(FCFS):
                             self.start[turn[i]-1] = time
                         self.corestatetmp[i].append('c'+str(i+1))#코어
                         self.corestatetmp[i].append(time)#시작시간
-            
-            #레디큐 상태 저장
-            self.readyqueueinfo.append(self.readyqueuetmp[0:])            
-            
+                        
             #프로세서 동작
             for i in range(self.P):
                 self.core[i].append(turn[i])

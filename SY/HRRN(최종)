@@ -1,0 +1,70 @@
+class HRRN(FCFS):
+    #프로세서 동작
+    def runningHRRN(self):
+        #self.arrivetime()
+        self.processor()
+        turn = [0]*self.P
+        time = 0
+        count = self.N
+        while count>0:
+            #도착한 프로세스 확인 -> 레디큐 저장
+            if time in self.AT:#현재 시간에 도착한 프로세스가 있다면
+                for i in range(len(self.AT)):#AT 리스트 확인
+                    if self.AT[i] == time:
+                        self.readyqueue.append(i+1)#레디큐에 프로세스 추가
+                        self.readyqueuetmp.append('P'+str(i+1))#레디큐에 프로세스 추가        
+            
+            #빈프로세서 확인
+            for i in range(self.P):#프로세서 개수 만큼 반복
+                if turn[i] == 0: #빈프로세서가 있다면
+                    if self.readyqueue:#레디큐에 프로세스가 있다면
+                        turn[i] = self.setnextprocess(time)#프로세서 할당
+                        if turn[i] in self.readyqueue:
+                            self.readyqueue.remove(turn[i])
+                        self.readyqueuetmp = [item for item in self.readyqueuetmp if item != 'P'+str(turn[i])]#레디큐에서 제거
+                        self.start[turn[i]-1] = time
+                        self.corestatetmp[i].append('c'+str(i+1))#코어
+                        self.corestatetmp[i].append(time)#시작시간
+             #레디큐 상태 저장
+            self.readyqueueinfo.append(self.readyqueuetmp[0:])           
+            
+            #프로세서 동작
+            for i in range(self.P):
+                self.core[i].append(turn[i])
+            
+            #실행완료 
+            for i in range(self.P):
+                if turn[i] != 0:
+                    if self.coreinfo[i]==1:#P코어일 경우
+                        self.BT[turn[i]-1]-=2
+                    elif self.coreinfo[i]==2:#E코어 경우
+                        self.BT[turn[i]-1]-=1
+                    if self.BT[turn[i]-1]<=0:#모두 실행한 경우
+                        self.end[turn[i]-1] = time+1#종료 시간 저장
+                        self.corestatetmp[i].append(time+1)#종료 시간
+                        self.corestatetmp[i].append('p'+str(turn[i]))#프로세스
+                        turn[i] = 0 #빈 프로세서로 만들어주기
+                        count -= 1 #실행완료된 프로세스 빼주기
+                        
+            #간트 차트 데이터 저장            
+            for i in range(self.P):
+                if len(self.corestatetmp[i]) == 4:#모든 정보가 저장된 경우
+                    tmp = self.corestatetmp[i]
+                    self.corestate.append(tmp) #저장
+                    self.corestatetmp[i] = [] #초기화
+            
+
+            #시간증가            
+            time+=1
+            
+        #WT, TT, 전력, NTT 계산
+        self.setTT()
+        self.setWT()
+        self.setpower()
+        self.setNTT()
+    #nextprocess
+    def setnextprocess(self, time):
+        ResponseRate = []
+        for i in self.readyqueue:
+            ResponseRate.append(((self.AT[i-1]-time+self.BT[i-1])/self.BT[i-1], i))
+        return min(ResponseRate)[1]

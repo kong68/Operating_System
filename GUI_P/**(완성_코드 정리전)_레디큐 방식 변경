@@ -49,12 +49,17 @@ class PrintRQ:
     def rqprint(self):
          Ready_Queue = Label(root, text="                                                                                             ", background = "white", font = ("",30))
          Ready_Queue.place(x=50,y=430)
-         if self.count < self.n:
+         if self.count < self.n+1:
              
              Ready_Queue = Label(root, text=self.readyqueue[self.count], background = "white", font = ("",30))
              Ready_Queue.place(x=50,y=430)
-         
+             c_label = Label(root, text= self.count + 1 , background = "white", font = ("",10))
+             c_label.place(x=160,y=384)
              self.count+=1
+
+             s_label = Label(root, text= "seconds", background = "white", font = ("",10))
+             s_label.place(x=180,y=384)
+         
 
              root.after(1000,self.rqprint)
          else: # after함수 Stop
@@ -269,6 +274,8 @@ def setting():
         RQ_list = RR.getRQ()
         PRQ = PrintRQ(RQ_list)
         PRQ.rqprint()
+
+       
 
 
         RR_WT_list = []

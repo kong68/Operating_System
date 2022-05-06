@@ -57,7 +57,7 @@ class Scheduling:
     # 도착시간이 가장 늦은 시간을 찾는 작업
     def _find_max_arrive_time(self):
         max_arr = -1
-        for i in range(1, process_num + 1):
+        for i in range(1, self.process_num + 1):
             max_arr = max(max_arr, self.processes[i].arrive_time)
         return max_arr
 
@@ -167,10 +167,6 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        # print("\n\n----------SPN-----------")
-        # for i in range(1, self.process_num + 1):
-        #     print(self.processes[i])
-        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def Shortest_Remaining_Time_Next(self):
 
@@ -183,7 +179,7 @@ class Scheduling:
             self._fill_ready_q(visited)
             '''남은 수행시간 기준 선점 스케줄링 임'''
             # 프로세서들 하나씩 확인
-            for i in range(1, processor_num + 1):
+            for i in range(1, self.processor_num + 1):
                 # 레디 큐가 비었으면 할당 종료
                 if not self.ready_q:
                     break
@@ -216,10 +212,6 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        # print("\n\n----------SRTN-----------")
-        # for i in range(1, self.process_num + 1):
-        #     print(self.processes[i])
-        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     def Round_Robin(self):
         visited = [False] * (self.process_num + 1)
@@ -262,10 +254,6 @@ class Scheduling:
 
         '''스케줄링 마친 후 총 전력 소비량 계산'''
         self._calculate_power_consumption()
-        # print("\n\n----------RoundRobin-----------")
-        # for i in range(1, self.process_num + 1):
-        #     print(self.processes[i])
-        # print(f"\nPower_Consumption: {self.power_consumption:.1f}")
 
     '''데이터 셋'''
 
@@ -294,27 +282,27 @@ class Scheduling:
         return self.readyqueue
 
     def getWT(self):
-        for i in range(1, process_num + 1):
+        for i in range(1, self.process_num + 1):
             self.WT.append(self.processes[i].waiting_time)
         return self.WT
 
     def getBT(self):
-        for i in range(1, process_num + 1):
+        for i in range(1, self.process_num + 1):
             self.BT.append(self.processes[i].burst_time)
         return self.BT
 
     def getTT(self):
-        for i in range(1, process_num + 1):
+        for i in range(1, self.process_num + 1):
             self.TT.append(self.processes[i].terminate_time - self.processes[i].arrive_time)
         return self.TT
 
     def getNTT(self):
-        for i in range(process_num):
+        for i in range(self.process_num):
             self.NTT.append(round(self.TT[i] / self.BT[i], 2))
         return self.NTT
 
     def getPOWER(self):
-        for i in range(1, processor_num + 1):
+        for i in range(1, self.processor_num + 1):
             self.POWER.append((self.processors[i]._core.upper() + "core", round(self.processors[i].power, 2)))
         return self.POWER
 
@@ -327,96 +315,16 @@ class Scheduling:
     def getTIME(self):
         return self.time
 
-    # 투 포인터 개념 활용하여 데이터 형태 변환 [1, 2, 2, 0, 0, 3, 3, 4] >> [[c1, 0, 1, p1], [c1, 1, 3, p2], [c1, 5, 7, p3], [c1, 8, 9, p4]]
-    def getINFO(self):
-        result = []
-        # 프로세서 하나마다 살피기
-        for i in range(1, processor_num + 1):
-            core_info = self.processors[i].INFO
-            # 시작시간, 종료 시간 초기화
-            start_time, end_time = 0, 0
-            # 시작시간이 배열의 끝 + 1 까지 올때까지 반복
-            while start_time < len(core_info):
-                # start_time의 값과 end_time값이 같을 동안 반복
-                while end_time < len(core_info) and core_info[start_time] == core_info[end_time]:
-                    # end_time 1씩증가
-                    end_time += 1
-                # start_time값과 end_time값이 같아지고
-
-                # start_time값이 0 이면 >> 프로세서 없던 것 >> start_time위치만 바꾸기
-                if core_info[start_time] == 0:
-                    start_time = end_time
-                # start_time값이 0 이 아니면 >> 결과값에 저장 후 start_time위치 바꾸기
-                else:
-                    result.append(["c" + str(i), start_time, end_time, 'p' + str(core_info[start_time])])
-                    start_time = end_time
-        # 시작 시간 기준 데이터 정렬
-        result.sort(key=lambda x: x[1])
-        return result
-
     # 각 프로세서의 로그를 얻는 매서드
     def getLOG(self):
         log = []
-        for i in range(1, processor_num + 1):
+        for i in range(1, self.processor_num + 1):
             log.append(self.processors[i].INFO)
         return log
+
     # 코어의 종류를 얻는 매서드
     def getCORETYPES(self):
         res = []
-        for i in range(1, processor_num + 1):
+        for i in range(1, self.processor_num + 1):
             res.append(self.processors[i]._core.upper() + "core")
         return res
-
-
-
-process_num = int(input("# of Processes: "))
-processor_num = int(input("# of Processors: "))
-p_core_num = int(input("# of P core: "))
-arrive_time = list(map(int, input("Arrival time: ").split()))
-burst_time = list(map(int, input("Burst time: ").split()))
-time_quantum = int(input("Time quantum for RR: "))
-
-# 스케줄링 객체 생성
-SPN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
-# spn 스케줄링 실행
-SPN.Shortest_Process_Next()
-# 스케줄링 객체 생성
-SRTN = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time)
-# srtn 스케줄링 실행
-SRTN.Shortest_Remaining_Time_Next()
-# 스케줄링 객체 생성
-RR = Scheduling(process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum)
-# rr 스케줄링 실행.
-RR.Round_Robin()
-
-'''여기서부터는 데이터를 얻는 매서드 호출법 입니다. >> print문 안의 중괄호만 보시면 돼요!'''
-# 일단 모든 데이터는 리스트로 묶어놨습니다 따로 필요한 데이터 형태나 수정사항 있으면 알려주세요
-# RR은 RoundRobin
-# 먼저 레디큐 호출법
-# print(f"\nReadyQueue: {RR.getRQ()}")
-# WT 호출법
-# print(f"\nWT: {RR.getWT()}")
-# BT 호출법
-# print(f"\nBT: {RR.getBT()}")
-# TT 호출법
-# print(f"\nTT: {RR.getTT()}")
-# NTT 호출법
-# print(f"\nNTT: {RR.getNTT()}")
-# 각 코어당 전력 호출법
-# print(f"\nPOWER: {RR.getPOWER()}")
-# 총 전력 호출법
-# print(f"\nTOTAL POWER: {RR.getTOTALPOWER()}")
-# 스케줄링 종료시간 호출법
-# print(f"\nTIME: {RR.getTIME()}")
-# 각 코어(프로세서)마다 [코어 종류, 시작시간, 종료시간, 프로세스 종류] 얻는 법
-# print(f"\n<PROCESSOR INFO>\n{RR.getINFO()}")
-
-print(RR.getLOG())
-print(RR.getCORETYPES())
-print("\n\n")
-print(SPN.getLOG())
-print(SPN.getCORETYPES())
-print("\n\n")
-print(SRTN.getLOG())
-print(SRTN.getCORETYPES())
-

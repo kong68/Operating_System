@@ -397,4 +397,3 @@ RR.Round_Robin()
 # 각 코어(프로세서)마다 [코어 종류, 시작시간, 종료시간, 프로세스 종류] 얻는 법
 # print(f"\n<PROCESSOR INFO>\n{RR.getINFO()}")
 
-

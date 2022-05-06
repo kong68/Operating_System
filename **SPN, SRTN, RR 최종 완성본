@@ -22,8 +22,6 @@ class Processor:
         self.time_quantum = None
         self.INFO = []
 
-
-# 각각 알고리즘 마다 처리해야하므로 각 알고리즘 클래스에 변수를 저장해야함
 class Scheduling:
     def __init__(self, process_num, processor_num, p_core_num, arrive_time, burst_time, time_quantum=None):
         self.process_num = process_num
